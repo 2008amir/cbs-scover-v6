@@ -1799,6 +1799,8 @@ global.purgeAntiDeleteStore = function purgeAntiDeleteStore(force = false) {
 //   private -> only .antideletemessage
 global.antiDeleteActiveFor = function antiDeleteActiveFor(jid) {
     if (!jid) return false;
+    // Statuses (status@broadcast), broadcast lists and channels are never recovered.
+    if (/@(broadcast|newsletter)$/.test(String(jid))) return false;
     if (String(jid).endsWith('@g.us')) return !!(global.antiDeleteGroupEnabled?.(jid));
     return global.antiDeleteAllowedFor(jid);
 };

@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node --max-old-space-size=320 --expose-gc --optimize-for-size index.js",
+    "start": "node --max-old-space-size=150 --max-semi-space-size=4 --expose-gc --optimize-for-size index.js",
     "dev": "node -e \"const http=require('http'),fs=require('fs');const html=fs.readFileSync('lib/index.html');http.createServer((q,s)=>{s.writeHead(200,{'Content-Type':'text/html'});s.end(html)}).listen(process.env.PORT||8080,()=>console.log('preview server ready'))\" --",
     "build:dev": "node -e \"const fs=require('fs');fs.mkdirSync('dist',{recursive:true});fs.copyFileSync('lib/index.html','dist/index.html')\"",
     "build": "node -e \"const fs=require('fs');fs.mkdirSync('dist',{recursive:true});fs.copyFileSync('lib/index.html','dist/index.html')\"",
