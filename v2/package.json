@@ -1,0 +1,12 @@
+{
+  "name": "ELITE-PRO-V2",
+  "version": "2.0.0",
+  "author": "EliteProTech",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {},
+  "description": "Uses the root node_modules; never install packages here."
+}

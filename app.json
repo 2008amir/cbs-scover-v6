@@ -1,0 +1,181 @@
+{
+  "name": "CBS-SCOVER",
+  "description": "A WhatsApp Bot Created by codebreakers",
+  "logo": "https://i.ibb.co/jk0ynvbn/7a8c4b5b617fa11a1e9a61190f427546.jpg",
+  "keywords": [
+    "bot",
+    "whatsapp",
+    "baileys",
+    "javascript",
+    "codebreakers"
+  ],
+  "success_url": "/",
+  "stack": "heroku-24",
+  "env": {
+    "SESSION_ID": {
+      "description": "Put your SESSION_ID here.",
+      "value": ""
+    },
+    "GEMINI_API_KEY": {
+      "description": "Google Gemini chat API key from local environment; unused slots may be blank.",
+      "value": "",
+      "required": false
+    },
+    "GEMINI_KEY_2": {
+      "description": "Google Gemini chat API key from local environment; unused slots may be blank.",
+      "value": "",
+      "required": false
+    },
+    "GEMINI_KEY_3": {
+      "description": "Google Gemini chat API key from local environment; unused slots may be blank.",
+      "value": "",
+      "required": false
+    },
+    "GEMINI_KEY_4": {
+      "description": "Google Gemini chat API key from local environment; unused slots may be blank.",
+      "value": "",
+      "required": false
+    },
+    "YOUTUBE_API_KEY": {
+      "description": "YouTube Data API v3 key for public video search; enable the API in its Google project.",
+      "value": "",
+      "required": false
+    },
+    "PREFIX": {
+      "description": "Bot command prefix (example: ., !, #)",
+      "value": "."
+    },
+    "OWNER_NUMBER": {
+      "description": "Owner's phone number in international format (without +).",
+      "value": "2349162748703"
+    },
+    "OWNER_NAME": {
+      "description": "Owner's display name.",
+      "value": "codebreakers"
+    },
+    "BOT_NAME": {
+      "description": "Bot display name.",
+      "value": "CBS-SCOVER"
+    },
+    "AUTO_RECORDING": {
+      "description": "Enable auto-recording simulation (true or false).",
+      "value": "false"
+    },
+    "AUTO_TYPING": {
+      "description": "Enable auto-typing simulation (true or false).",
+      "value": "false"
+    },
+    "AUTO_RECORD_TYPE": {
+      "description": "Enable audio recording type simulation.",
+      "value": "false"
+    },
+    "AUTO_READ": {
+      "description": "Auto read all incoming messages.",
+      "value": "false"
+    },
+    "AUTO_BIO": {
+      "description": "Enable auto bio updates with time.",
+      "value": "true"
+    },
+    "ANTI_92": {
+      "description": "Block +92 numbers automatically (true or false).",
+      "value": "false"
+    },
+    "AUTO_VIEW_STATUS": {
+      "description": "Auto-view WhatsApp statuses.",
+      "value": "false"
+    },
+    "WELCOME": {
+      "description": "Enable group welcome message.",
+      "value": "true"
+    },
+    "AUTO_REACT": {
+      "description": "Enable automatic reactions to messages.",
+      "value": "false"
+    },
+    "AUTO_LIKE_STATUS": {
+      "description": "Automatically react to viewed statuses.",
+      "value": "true"
+    },
+    "SHAZAM_API_KEY": {
+      "description": "Shazam (RapidAPI) key used for song identification.",
+      "value": "",
+      "required": false
+    },
+    "HF_TOKEN": {
+      "description": "Hugging Face access token used by the voice changer (Seed-VC).",
+      "value": "",
+      "required": false
+    },
+    "HF_SPACE": {
+      "description": "Hugging Face Space running Seed-VC voice conversion.",
+      "value": "Plachta/Seed-VC",
+      "required": false
+    },
+    "GEMINI_KEY_5": {
+      "description": "Google Gemini chat API key from local environment; unused slots may be blank.",
+      "value": "",
+      "required": false
+    },
+    "GEMINI_youtube_KEY": {
+      "description": "Separate Gemini key for video metadata analysis only, not YouTube Data API authentication.",
+      "value": "",
+      "required": false
+    },
+    "GEMINI_youtube_KEY_2": {
+      "description": "Separate Gemini key for video metadata analysis only, not YouTube Data API authentication.",
+      "value": "",
+      "required": false
+    },
+    "GEMINI_youtube_KEY_3": {
+      "description": "Separate Gemini key for video metadata analysis only, not YouTube Data API authentication.",
+      "value": "",
+      "required": false
+    },
+    "GEMINI_youtube_KEY_4": {
+      "description": "Separate Gemini key for video metadata analysis only, not YouTube Data API authentication.",
+      "value": "",
+      "required": false
+    },
+    "GEMINI_youtube_KEY_5": {
+      "description": "Separate Gemini key for video metadata analysis only, not YouTube Data API authentication.",
+      "value": "",
+      "required": false
+    },
+    "IMAGE_GEMINI_KEY_1": {
+      "description": "Dedicated Gemini key for image generation only; unused slots may be blank.",
+      "value": "",
+      "required": false
+    },
+    "IMAGE_GEMINI_KEY_2": {
+      "description": "Dedicated Gemini key for image generation only; unused slots may be blank.",
+      "value": "",
+      "required": false
+    },
+    "IMAGE_GEMINI_KEY_3": {
+      "description": "Dedicated Gemini key for image generation only; unused slots may be blank.",
+      "value": "",
+      "required": false
+    },
+    "IMAGE_GEMINI_KEY_4": {
+      "description": "Dedicated Gemini key for image generation only; unused slots may be blank.",
+      "value": "",
+      "required": false
+    },
+    "IMAGE_GEMINI_KEY_5": {
+      "description": "Dedicated Gemini key for image generation only; unused slots may be blank.",
+      "value": "",
+      "required": false
+    },
+    "IMAGE_GEMINI_MODEL": {
+      "description": "Image generation model id (default: gemini-3.1-flash-image).",
+      "value": "gemini-3.1-flash-image",
+      "required": false
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "https://github.com/heroku/heroku-buildpack-nodejs.git"
+    }
+  ]
+}

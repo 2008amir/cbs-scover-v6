@@ -1,0 +1,67 @@
+{
+  "name": "ELITE-PRO-V1",
+  "version": "1.1.1",
+  "description": "A WhatsApp bot with rich features.",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node --max-old-space-size=320 --expose-gc --optimize-for-size index.js",
+    "dev": "node -e \"const http=require('http'),fs=require('fs');const html=fs.readFileSync('lib/index.html');http.createServer((q,s)=>{s.writeHead(200,{'Content-Type':'text/html'});s.end(html)}).listen(process.env.PORT||8080,()=>console.log('preview server ready'))\" --",
+    "build:dev": "node -e \"const fs=require('fs');fs.mkdirSync('dist',{recursive:true});fs.copyFileSync('lib/index.html','dist/index.html')\"",
+    "build": "node -e \"const fs=require('fs');fs.mkdirSync('dist',{recursive:true});fs.copyFileSync('lib/index.html','dist/index.html')\"",
+    "postinstall": "node -e \"require('fs').rmSync('v2/node_modules',{recursive:true,force:true})\""
+  },
+  "author": "cyrilix",
+  "license": "MIT",
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "latest",
+    "@gradio/client": "^2.5.1",
+    "@hapi/boom": "latest",
+    "@vitalets/google-translate-api": "^9.2.0",
+    "@whiskeysockets/baileys": "7.0.0-rc14",
+    "awesome-phonenumber": "^5.9.0",
+    "axios": "^1.14.0",
+    "baileys": "npm:@whiskeysockets/baileys@7.0.0-rc14",
+    "chalk": "^4.1.2",
+    "cheerio": "^1.0.0-rc.12",
+    "docx": "^9.14.0",
+    "dotenv": "^17.4.2",
+    "fflate": "^0.8.3",
+    "file-type": "^16.5.3",
+    "fluent-ffmpeg": "^2.1.2",
+    "form-data": "^4.0.0",
+    "fs-extra": "^11.1.1",
+    "gifted-btns": "^1.0.2",
+    "google-tts-api": "^2.0.2",
+    "human-readable": "^0.2.1",
+    "jimp": "^0.16.3",
+    "jsdom": "^22.1.0",
+    "jsqr": "^1.4.0",
+    "libphonenumber-js": "^1.12.8",
+    "moment-timezone": "^0.5.43",
+    "node-cache": "^5.1.2",
+    "node-fetch": "^2.6.11",
+    "node-webpmux": "^3.1.7",
+    "pdfjs-dist": "4.10.38",
+    "performance-now": "^2.1.0",
+    "pino": "^10.1.0",
+    "qrcode": "^1.5.3",
+    "sharp": "^0.34.5",
+    "translate-google-api": "^1.0.4",
+    "youtube-dl-exec": "^3.1.17",
+    "yt-search": "^2.10.4"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "trustedDependencies": [
+    "youtube-dl-exec"
+  ],
+  "allowScripts": {
+    "@ffmpeg-installer/linux-x64": true,
+    "@whiskeysockets/baileys": true,
+    "protobufjs": true,
+    "sharp": true,
+    "youtube-dl-exec": true
+  }
+}
