@@ -18,7 +18,7 @@
 - V2 resolves root dependencies only; postinstall removes v2/node_modules, startup removes repository npm caches, and .npmrc uses /tmp. Run foreground install scripts with reduced download concurrency, using supported npm options; never spawn npm cache cleanup during install. Repair incomplete packages and npm's hidden lockfile; retain the lockfile and user data.
 - Keep lockfile resolved tarballs on registry.npmjs.org with their integrity hashes; sandbox-cache URLs fail restricted hosting installs, so check all lockfile downloads after dependency changes.
 - Send bounded chatbot turns as Gemini contents apart from personality prompts; restore DM archives, isolate group threads, serialize chat/sender delivery, and record only sent replies.
-- Both V2 menus include menuCommands/optional menuCategory without ownership; V1 alone executes shared conversions to prevent double replies.
+- Both V2 menus include menuCommands/optional menuCategory without ownership; V1 alone executes shared conversions.
 - lib/error-reporting.js owns request-scoped private causes and credential redaction; DM the initiator, never serialize provider payloads/stacks or globally monkey-patch console.
 - lib/document-conversion.js locally extracts bounded PDF text with PDF.js and writes DOCX; no LibreOffice/external uploads. Image-only pages explicitly require OCR rather than producing blank documents.
 
