@@ -22,4 +22,4 @@
 - lib/error-reporting.js owns request-scoped private causes and credential redaction; DM the initiator, never serialize provider payloads/stacks or globally monkey-patch console.
 - lib/document-conversion.js locally extracts bounded PDF text with PDF.js and writes DOCX; no LibreOffice/external uploads. Image-only pages explicitly require OCR rather than producing blank documents.
 
-- lib/media-limits.js owns bounded media buffering (size cap, single concat); all WhatsApp media downloads use it so large files cannot exceed the small host's memory.
+- lib/media-limits.js bounds all media downloads (size cap, one concat) to fit host memory.
