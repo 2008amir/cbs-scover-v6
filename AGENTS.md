@@ -9,7 +9,7 @@
 - Provider credentials load through lib/env-config.js; Gemini chat/video and YouTube pools remain isolated. lib/keyserver.js owns shared chat model selection, bounded requests and authorization classification; rejected keys are not retried across models and secrets never reach logs/replies.
 - lib/voicechanger/env.js normalizes inference controls. Select bounded speech-rich references without altering timbre; validate audible duration for old/new voices and use supported Seed-VC V2 fields to keep quality tuning compatible.
 - lib/image-generation.js owns bounded requests, validated image buffers and sanitized errors; V1 evaluation uses repository-root require.
-- lib/group-status.js wraps prepared content in groupStatusMessageV2; replies stay private. status-audio.js normalizes bounded Opus audio.
+- lib/group-status.js honors explicit IDs and relays content directly with fresh metadata; status-audio.js normalizes bounded Opus audio.
 - Anti-delete capture shares the outer store scope and runs before commands; socket recovery listens for updates/deletes/revokes. Disk retention is process-scoped; redelivery never resets expiry and failed restores remain retryable.
 - lib/menu-buttons.js owns parsing/native payloads/chat-bound resolution; persist bounded expiring actions in shared settings and handle taps before both engines' command parsing so button data cannot execute commands.
 - lib/youtube-download.js owns downloads: preserve audio providers/bounded YouTube metadata; video title search uses relevant Dailymotion results, retaining public YouTube/Dailymotion links and ytmp4. Approve canonical URLs only; bound yt-dlp processes/files, never bypass access, relay validated media.
