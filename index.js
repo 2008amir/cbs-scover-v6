@@ -1,3 +1,5 @@
+// Apply before any Baileys import; installs and existing host uploads both need it.
+require('./lib/baileys-status-compat').patchGroupStatusMedia();
 // Installed first (built-ins only) so a half-installed package found while
 // loading the bot is removed and reinstalled by the next start's npm install.
 const maintenance = require('./lib/maintenance');
