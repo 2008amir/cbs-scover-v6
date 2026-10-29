@@ -1,3 +1,4 @@
+- [ ] Repair missing media group statuses while preserving status-only delivery and requesting-chat confirmations; verify protocol and command regressions.
 - [x] Send only unquoted status confirmations to the requesting chat, including explicit group-ID uploads; never echo media/audio into either chat. Command simulations cover text/image/video/audio from private and group chats.
 - [x] Fix explicit group-ID status targeting, normalize audio to real Opus voice status, relay prepared content directly with fresh group metadata, and confirm without echoing media. All 40 targeted status/media/download tests pass, including real encrypted uploads and command delivery simulation.
 - [ ] Verify group-ID status visibility and audio playback in live WhatsApp after redeploy; blocked by unavailable connected deployment.
