@@ -9,16 +9,16 @@
 - Provider credentials load through lib/env-config.js; Gemini chat/video and YouTube pools remain isolated. lib/keyserver.js owns shared chat model selection, bounded requests and authorization classification; rejected keys are not retried across models and secrets never reach logs/replies.
 - lib/voicechanger/env.js normalizes inference controls. Select bounded speech-rich references without altering timbre; validate audible duration for old/new voices and use supported Seed-VC V2 fields to keep quality tuning compatible.
 - lib/image-generation.js owns bounded requests, validated image buffers and sanitized errors; V1 evaluation uses repository-root require.
-- lib/group-status.js relays in groupStatusMessageV2 (bare content posts to chat); status-audio.js bounds Opus. Confirm unquoted in requesting chat.
+- Keep groupStatusMessageV2 (bare media posts to chat). lib/baileys-status-compat.js fixes rc14 wrapped-media classification in both aliases at install/before imports; status-audio.js bounds Opus. Confirm unquoted in requesting chat.
 - Anti-delete capture shares the outer store scope and runs before commands; socket recovery listens for updates/deletes/revokes. Disk retention is process-scoped; redelivery never resets expiry and failed restores remain retryable.
 - lib/menu-buttons.js owns parsing/native payloads/chat-bound resolution; persist bounded expiring actions in shared settings and handle taps before both engines' command parsing so button data cannot execute commands.
 - lib/youtube-download.js owns downloads: preserve audio providers/bounded YouTube metadata; video title search uses relevant Dailymotion results, retaining public YouTube/Dailymotion links and ytmp4. Approve canonical URLs only; bound yt-dlp processes/files, never bypass access, relay validated media.
 - Overlap audio download/upload with card delivery; relay only after card success. Hedge at most two provider fetches, cancel losers, convert only the winner to save CPU/storage.
-- lib/v2/index.js detects another linked bot from foreign fromMe replies; log only (owner wants no WhatsApp warning). Other devices cannot be stopped by code.
+- Foreign fromMe replies indicate another linked bot; log only, never warn in WhatsApp. Code cannot stop other devices.
 - V2 resolves root dependencies only; postinstall removes v2/node_modules, startup removes repository npm caches, and .npmrc uses /tmp. Run foreground install scripts with reduced download concurrency, using supported npm options; never spawn npm cache cleanup during install. Repair incomplete packages and npm's hidden lockfile; retain the lockfile and user data.
 - Keep lockfile resolved tarballs on registry.npmjs.org with their integrity hashes; sandbox-cache URLs fail restricted hosting installs, so check all lockfile downloads after dependency changes.
 - Send bounded chatbot turns as Gemini contents apart from personality prompts; restore DM archives, isolate group threads, serialize chat/sender delivery, and record only sent replies.
-- Both V2 menus include menuCommands/optional menuCategory without ownership; V1 alone executes shared conversions.
+- V2 menus use menuCommands/menuCategory without ownership; V1 executes shared conversions.
 - lib/error-reporting.js owns request-scoped private causes and credential redaction; DM the initiator, never serialize provider payloads/stacks or globally monkey-patch console.
 - lib/document-conversion.js locally extracts bounded PDF text with PDF.js and writes DOCX; no LibreOffice/external uploads. Image-only pages explicitly require OCR rather than producing blank documents.
 
