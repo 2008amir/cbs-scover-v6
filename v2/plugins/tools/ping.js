@@ -1,8 +1,8 @@
-let handler = async (m, { EliteProTech }) => {
+let handler = async (m, { CbsScover }) => {
     const start = Date.now()
-    const sent = await EliteProTech.reply(m.chat, 'Speed test..', m)
+    const sent = await CbsScover.reply(m.chat, 'Speed test..', m)
     const latency = Date.now() - start
-    await EliteProTech.sendMessage(m.chat, {
+    await CbsScover.sendMessage(m.chat, {
         text: `Pong ${latency}ms`,
         edit: sent.key
     })

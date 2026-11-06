@@ -1,4 +1,4 @@
-export async function sendRichHtml(EliteProTech, chat, { id, title, html, source }) {
+export async function sendRichHtml(CbsScover, chat, { id, title, html, source }) {
     const responseId = `${id}-${Date.now()}`
     const payload = {
         response_id: responseId,
@@ -14,7 +14,7 @@ export async function sendRichHtml(EliteProTech, chat, { id, title, html, source
         }]
     }
 
-    await EliteProTech.relayMessage(chat, {
+    await CbsScover.relayMessage(chat, {
         messageContextInfo: {
             deviceListMetadata: {},
             deviceListMetadataVersion: 2,

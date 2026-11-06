@@ -1,7 +1,7 @@
 {
-  "name": "ELITE-PRO-V2",
+  "name": "cbs-scover-v2",
   "version": "2.0.0",
-  "author": "EliteProTech",
+  "author": "CBS-SCOVER",
   "type": "module",
   "main": "index.js",
   "scripts": {

@@ -100,7 +100,7 @@ export function webp2mp4File(filePath) {
     })
 }
 
-export async function uploadToEliteProTechUrl(filePath) {
+export async function uploadToCbsScoverUrl(filePath) {
     if (!filePath) throw new Error('No file provided for upload.')
     if (!fs.existsSync(filePath)) throw new Error('File not found.')
 

@@ -285,9 +285,9 @@ if (params.has('play')) {
 }
   </script>
 `;
-let handler = async (m, { EliteProTech }) => {
+let handler = async (m, { CbsScover }) => {
     try {
-        await sendRichHtml(EliteProTech, m.chat, { id: 'elite-piano', title: 'ELITE-PRO-V2 • PIANO', html, source: 'eliteprotech' })
+        await sendRichHtml(CbsScover, m.chat, { id: 'elite-piano', title: 'CBS-SCOVER-V2 • PIANO', html, source: 'CBS-SCOVER' })
     } catch (error) {
         await m.reply(`Unable to send Piano: ${error.message || String(error)}`)
     }

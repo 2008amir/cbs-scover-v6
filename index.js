@@ -982,7 +982,7 @@ function voiceNode(mek) {
 
 // Download a voice note and hand it to the model as audio. Nothing about the
 // transcription is ever sent to the chat — only the answer.
-async function voiceParts(EliteProTech, mek) {
+async function voiceParts(CbsScover, mek) {
     const node = voiceNode(mek);
     if (!node) return null;
     try {
@@ -999,7 +999,7 @@ async function voiceParts(EliteProTech, mek) {
             }
         }];
     } catch (err) {
-        await require('./lib/error-reporting').reportError(EliteProTech, mek, err, 'Chatbot voice note');
+        await require('./lib/error-reporting').reportError(CbsScover, mek, err, 'Chatbot voice note');
         return null;
     }
 }
@@ -1018,7 +1018,7 @@ function videoNode(mek) {
 
 // Download a picture and hand it to the model so it can actually look at it
 // and react to what is in it. Videos are never analysed.
-async function imageParts(EliteProTech, mek) {
+async function imageParts(CbsScover, mek) {
     const node = imageNode(mek);
     if (!node) return null;
     try {
@@ -1035,7 +1035,7 @@ async function imageParts(EliteProTech, mek) {
             }
         }];
     } catch (err) {
-        await require('./lib/error-reporting').reportError(EliteProTech, mek, err, 'Chatbot image');
+        await require('./lib/error-reporting').reportError(CbsScover, mek, err, 'Chatbot image');
         return null;
     }
 }
@@ -1062,7 +1062,7 @@ function initialDelay() {
 
 // Waits the random pause, then holds the typing indicator for exactly
 // characters × 0.3 s, then clears it. Never called before generation is done.
-async function pauseThenType(EliteProTech, chatJid, text) {
+async function pauseThenType(CbsScover, chatJid, text) {
     await sleepMs(initialDelay());
     const body = String(text || '');
     const total = humanDelay(body.length);
@@ -1070,18 +1070,18 @@ async function pauseThenType(EliteProTech, chatJid, text) {
     // "available" is required by WhatsApp before chat states are shown, so the
     // typing state goes through normally.
 
-    await EliteProTech.sendPresenceUpdate('available', chatJid).catch(() => {});
+    await CbsScover.sendPresenceUpdate('available', chatJid).catch(() => {});
     while (Date.now() < until) {
-        await EliteProTech.sendPresenceUpdate('composing', chatJid).catch(() => {});
+        await CbsScover.sendPresenceUpdate('composing', chatJid).catch(() => {});
         await sleepMs(Math.min(2500, until - Date.now()));
     }
-    await EliteProTech.sendPresenceUpdate('paused', chatJid).catch(() => {});
+    await CbsScover.sendPresenceUpdate('paused', chatJid).catch(() => {});
 }
 
 
 
 
-async function generateAndSend(EliteProTech, from, sender, mek, texts, audioParts, imgParts, sawVideo) {
+async function generateAndSend(CbsScover, from, sender, mek, texts, audioParts, imgParts, sawVideo) {
     const combined = texts.join('\n').trim();
     const hasAudio = Array.isArray(audioParts) && audioParts.length > 0;
     const hasImage = Array.isArray(imgParts) && imgParts.length > 0;
@@ -1152,9 +1152,9 @@ async function generateAndSend(EliteProTech, from, sender, mek, texts, audioPart
     }
 
 // Random 1/2/3 s pause, then typing for exactly characters × 0.3 s.
-    await pauseThenType(EliteProTech, from, clean);
+    await pauseThenType(CbsScover, from, clean);
 
-    await EliteProTech.sendMessage(from, { text: clean }, { quoted: mek });
+    await CbsScover.sendMessage(from, { text: clean }, { quoted: mek });
     global.userChats[historyKey].push(`Bot: ${clean}`);
     while (global.userChats[historyKey].length > 20) global.userChats[historyKey].shift();
     global.logChatMessage(from, 'You', clean);
@@ -1200,9 +1200,9 @@ function ownerJid() {
     return num ? `${num}@s.whatsapp.net` : null;
 }
 
-async function reportChatbotError(EliteProTech, chatJid, mek, mode, err) {
+async function reportChatbotError(CbsScover, chatJid, mek, mode, err) {
     const personality = String(mode || 'normal').toUpperCase() === 'LOVESTART' ? 'LOVE_START' : String(mode || 'normal').toUpperCase();
-    await require('./lib/error-reporting').reportError(EliteProTech, mek, err, `Chatbot ${personality}`);
+    await require('./lib/error-reporting').reportError(CbsScover, mek, err, `Chatbot ${personality}`);
 }
 
 /* ---- independent knowledge scheduler -----------------------------------
@@ -1210,14 +1210,14 @@ async function reportChatbotError(EliteProTech, chatJid, mek, mode, err) {
    change it). It is never triggered by an incoming message and never blocks
    one; results only land in the knowledge cache. */
 let videoSchedulerStarted = false;
-global.startVideoKnowledgeScheduler = function startVideoKnowledgeScheduler(EliteProTech) {
+global.startVideoKnowledgeScheduler = function startVideoKnowledgeScheduler(CbsScover) {
     if (videoSchedulerStarted) return;
     videoSchedulerStarted = true;
     videoKnowledge.startScheduler({
         onDone: (stats) => {
             const owner = ownerJid();
             if (!owner) return;
-            EliteProTech.sendMessage(owner, {
+            CbsScover.sendMessage(owner, {
                 text: `ROMANTIC VIDEO KNOWLEDGE REFRESH COMPLETE (scheduled)\n\n`
                     + `Videos found: ${stats.found}\nVideos processed: ${stats.processed}\n`
                     + `Videos skipped: ${stats.skipped}\nHausa patterns added: ${stats.hausa}\n`
@@ -1230,7 +1230,7 @@ global.startVideoKnowledgeScheduler = function startVideoKnowledgeScheduler(Elit
             console.error('scheduled video knowledge refresh failed:\n' + exact);
             const owner = ownerJid();
             if (!owner) return;
-            EliteProTech.sendMessage(owner, {
+            CbsScover.sendMessage(owner, {
                 text: `ROMANTIC VIDEO KNOWLEDGE REFRESH FAILED\n\nTimestamp: ${new Date().toISOString()}\n\nError:\n${exact}`
             }).catch(() => {});
         }
@@ -1372,7 +1372,7 @@ const OPENERS = {
 // The first message is written by the model from the configured bot name and
 // whatever context exists in this chat, so it is never one of two fixed lines.
 // The hard-coded list is only a last-resort fallback if generation fails.
-async function sendLoveStartOpener(EliteProTech, target) {
+async function sendLoveStartOpener(CbsScover, target) {
     const gender = chatbotGender(target) || 'female';
     const name = chatbotName();
     let text = '';
@@ -1400,14 +1400,14 @@ ${archiveBlock(target)}`.trim();
         const list = OPENERS[gender] || OPENERS.female;
         text = list[Math.floor(Math.random() * list.length)].replace('{name}', name);
     }
-    await pauseThenType(EliteProTech, target, text);
-    await EliteProTech.sendMessage(target, { text });
+    await pauseThenType(CbsScover, target, text);
+    await CbsScover.sendMessage(target, { text });
     global.logChatMessage(target, 'You', text);
 }
 
 
 // Returns true when the message was a chatbot control command handled here.
-global.chatbotCommand = async function chatbotCommand(EliteProTech, mek, body) {
+global.chatbotCommand = async function chatbotCommand(CbsScover, mek, body) {
     const prefix = global.prefix ?? '.';
     const raw = String(body || '').trim();
     if (!require('./lib/v2').parseCommand(raw, prefix)) return false;
@@ -1426,36 +1426,36 @@ global.chatbotCommand = async function chatbotCommand(EliteProTech, mek, body) {
     };
     if (!(cmd in modeByCmd)) return false;
 
-    const sender = (mek.key.fromMe ? (EliteProTech.user?.id || '') : (mek.key.participant || mek.key.remoteJid)) || '';
+    const sender = (mek.key.fromMe ? (CbsScover.user?.id || '') : (mek.key.participant || mek.key.remoteJid)) || '';
     const senderNum = String(sender).replace(/\D/g, '');
-    const isOwner = mek.key.fromMe || await require('./lib/owners').isOwner(EliteProTech, sender);
+    const isOwner = mek.key.fromMe || await require('./lib/owners').isOwner(CbsScover, sender);
     const from = mek.key.remoteJid;
 
     // Bare ".chatbot-love-start" (no arguments) -> status + total active + commands.
     if (!parts.length) {
         if (!isOwner) {
-            await EliteProTech.sendMessage(from, { text: global.mess.owner }, { quoted: mek });
+            await CbsScover.sendMessage(from, { text: global.mess.owner }, { quoted: mek });
             return true;
         }
         const text = `${chatbotStatusText(modeByCmd[cmd])}\n\n${modeByCmd[cmd] === 'lovestart' ? LOVESTART_HELP : CHATBOT_HELP}`;
-        await EliteProTech.sendMessage(from, { text }, { quoted: mek });
+        await CbsScover.sendMessage(from, { text }, { quoted: mek });
         return true;
     }
 
     if ((parts[0] || '').toLowerCase() === 'help') {
 
         const text = modeByCmd[cmd] === 'lovestart' ? LOVESTART_HELP : CHATBOT_HELP;
-        await EliteProTech.sendMessage(from, { text }, { quoted: mek });
+        await CbsScover.sendMessage(from, { text }, { quoted: mek });
         return true;
     }
 
     // How many chats this personality is currently active in, and which ones.
     if (['status', 'list', 'active'].includes((parts[0] || '').toLowerCase())) {
         if (!isOwner) {
-            await EliteProTech.sendMessage(from, { text: global.mess.owner }, { quoted: mek });
+            await CbsScover.sendMessage(from, { text: global.mess.owner }, { quoted: mek });
             return true;
         }
-        await EliteProTech.sendMessage(from, { text: chatbotStatusText(modeByCmd[cmd]) }, { quoted: mek });
+        await CbsScover.sendMessage(from, { text: chatbotStatusText(modeByCmd[cmd]) }, { quoted: mek });
         return true;
     }
 
@@ -1465,14 +1465,14 @@ global.chatbotCommand = async function chatbotCommand(EliteProTech, mek, body) {
     // at full speed while it refreshes. Chat replies only ever read the cache.
     if ((parts[0] || '').toLowerCase() === 'knowledge') {
         if (!isOwner) {
-            await EliteProTech.sendMessage(from, { text: global.mess.owner }, { quoted: mek });
+            await CbsScover.sendMessage(from, { text: global.mess.owner }, { quoted: mek });
             return true;
         }
         if ((parts[1] || '').toLowerCase() !== 'refresh') {
-            await EliteProTech.sendMessage(from, { text: `Use: ${prefix}${cmd} knowledge refresh` }, { quoted: mek });
+            await CbsScover.sendMessage(from, { text: `Use: ${prefix}${cmd} knowledge refresh` }, { quoted: mek });
             return true;
         }
-        await EliteProTech.sendMessage(from, {
+        await CbsScover.sendMessage(from, {
             text: 'ROMANTIC VIDEO KNOWLEDGE REFRESH STARTED\n\nThe refresh continues separately in the background. Chatting is unaffected.'
         }, { quoted: mek });
 
@@ -1480,7 +1480,7 @@ global.chatbotCommand = async function chatbotCommand(EliteProTech, mek, body) {
         (async () => {
             try {
                 const stats = await videoKnowledge.refresh();
-                await EliteProTech.sendMessage(from, {
+                await CbsScover.sendMessage(from, {
                     text: `ROMANTIC VIDEO KNOWLEDGE REFRESH COMPLETE\n\n`
                         + `Videos found: ${stats.found}\n`
                         + `Videos processed: ${stats.processed}\n`
@@ -1492,7 +1492,7 @@ global.chatbotCommand = async function chatbotCommand(EliteProTech, mek, body) {
                         + `Failed sources: ${stats.failedSources}`
                 }, { quoted: mek });
             } catch (err) {
-                await reportChatbotError(EliteProTech, from, mek, 'knowledge', err);
+                await reportChatbotError(CbsScover, from, mek, 'knowledge', err);
             }
         })();
         return true;
@@ -1510,7 +1510,7 @@ global.chatbotCommand = async function chatbotCommand(EliteProTech, mek, body) {
     // existing local .chatbot on/off handling stays exactly as it was.
     if (!remote && modeByCmd[cmd] !== 'lovestart') return false;
     if (!isOwner) {
-        await EliteProTech.sendMessage(from, { text: global.mess.owner }, { quoted: mek });
+        await CbsScover.sendMessage(from, { text: global.mess.owner }, { quoted: mek });
         return true;
     }
 
@@ -1521,15 +1521,15 @@ global.chatbotCommand = async function chatbotCommand(EliteProTech, mek, body) {
     const extra = (remote ? parts[at + 2] : parts[1] || '').toLowerCase();
 
     if (remote && !target) {
-        await EliteProTech.sendMessage(from, { text: `Use: ${prefix}${cmd} 2349xxxxxxxxx on/off` }, { quoted: mek });
+        await CbsScover.sendMessage(from, { text: `Use: ${prefix}${cmd} 2349xxxxxxxxx on/off` }, { quoted: mek });
         return true;
     }
     if (action !== 'on' && action !== 'off') {
-        await EliteProTech.sendMessage(from, { text: `Use: ${prefix}${cmd}${remote ? ' <number|groupid>' : ''} on/off` }, { quoted: mek });
+        await CbsScover.sendMessage(from, { text: `Use: ${prefix}${cmd}${remote ? ' <number|groupid>' : ''} on/off` }, { quoted: mek });
         return true;
     }
     if (mode !== 'normal' && target.endsWith('@g.us')) {
-        await EliteProTech.sendMessage(from, { text: 'That personality only works in individual chats.' }, { quoted: mek });
+        await CbsScover.sendMessage(from, { text: 'That personality only works in individual chats.' }, { quoted: mek });
         return true;
     }
 
@@ -1554,14 +1554,14 @@ global.chatbotCommand = async function chatbotCommand(EliteProTech, mek, body) {
     // LOVE_START always speaks first once it is switched on — "nostart" is the
     // only way to activate it silently.
     const willOpen = action === 'on' && mode === 'lovestart' && extra !== 'nostart';
-    await EliteProTech.sendMessage(from, {
+    await CbsScover.sendMessage(from, {
         text: `✅ Chatbot ${label} turned ${action.toUpperCase()} for ${target.split('@')[0]}`
             + (willOpen ? '\n💬 Sending the first message now...' : '')
     }, { quoted: mek });
 
     if (willOpen) {
-        sendLoveStartOpener(EliteProTech, target).catch(err =>
-            reportChatbotError(EliteProTech, target, mek, 'lovestart', err));
+        sendLoveStartOpener(CbsScover, target).catch(err =>
+            reportChatbotError(CbsScover, target, mek, 'lovestart', err));
     }
 
     return true;
@@ -1572,7 +1572,7 @@ global.chatbotCommand = async function chatbotCommand(EliteProTech, mek, body) {
    outgoing ones and command messages), so the chat archive is complete and the
    remote activation commands work even from the owner's own DM. */
 const seenSide = new Set();
-global.chatbotSideChannel = async function chatbotSideChannel(EliteProTech, mek) {
+global.chatbotSideChannel = async function chatbotSideChannel(CbsScover, mek) {
     try {
         if (!mek?.message || !mek?.key) return false;
         const from = mek.key.remoteJid;
@@ -1584,7 +1584,7 @@ global.chatbotSideChannel = async function chatbotSideChannel(EliteProTech, mek)
 
         const trimmed = extractText(mek).trim();
         const isCommand = trimmed.startsWith(global.prefix ?? '.');
-        // Archive-only listener: command controls execute in ElitePro once.
+        // Archive-only listener: command controls execute in CBS-SCOVER once.
         if (isCommand) return false;
 
         // Log every message in the chat — incoming and the owner's own outgoing
@@ -1599,19 +1599,19 @@ global.chatbotSideChannel = async function chatbotSideChannel(EliteProTech, mek)
 };
 
 const sideChannelSockets = new WeakSet();
-function hookSideChannel(EliteProTech) {
-    if (!EliteProTech?.ev || sideChannelSockets.has(EliteProTech)) return;
-    sideChannelSockets.add(EliteProTech);
-    EliteProTech.ev.on('messages.upsert', async ({ messages }) => {
-        for (const m of messages || []) await global.chatbotSideChannel(EliteProTech, m);
+function hookSideChannel(CbsScover) {
+    if (!CbsScover?.ev || sideChannelSockets.has(CbsScover)) return;
+    sideChannelSockets.add(CbsScover);
+    CbsScover.ev.on('messages.upsert', async ({ messages }) => {
+        for (const m of messages || []) await global.chatbotSideChannel(CbsScover, m);
     });
 }
 
-global.humanChatbot = async function humanChatbot(EliteProTech, mek) {
+global.humanChatbot = async function humanChatbot(CbsScover, mek) {
     try {
-        hookSideChannel(EliteProTech);
+        hookSideChannel(CbsScover);
         // One-time timer setup only — it never refreshes because of this message.
-        global.startVideoKnowledgeScheduler(EliteProTech);
+        global.startVideoKnowledgeScheduler(CbsScover);
         if (!mek?.message || !mek?.key) return;
         const from = mek.key.remoteJid;
         if (!from || from === 'status@broadcast') return;
@@ -1620,7 +1620,7 @@ global.humanChatbot = async function humanChatbot(EliteProTech, mek) {
         const trimmed = observed.trim();
         const isCommand = trimmed.startsWith(global.prefix || '.');
 
-        if (await global.chatbotSideChannel(EliteProTech, mek)) return;
+        if (await global.chatbotSideChannel(CbsScover, mek)) return;
         if (mek.key.fromMe) return;
 
 
@@ -1662,13 +1662,13 @@ global.humanChatbot = async function humanChatbot(EliteProTech, mek) {
 
         // A voice note is read straight into the model as audio (silent STT).
         if (isVoice) {
-            const parts = await voiceParts(EliteProTech, mek);
+            const parts = await voiceParts(CbsScover, mek);
             if (parts) buf.audio = (buf.audio || []).concat(parts);
         }
 
         // A picture is handed to the model so it can look at it and react.
         if (isImage) {
-            const parts = await imageParts(EliteProTech, mek);
+            const parts = await imageParts(CbsScover, mek);
             if (parts) buf.images = (buf.images || []).concat(parts);
         }
 
@@ -1678,9 +1678,9 @@ global.humanChatbot = async function humanChatbot(EliteProTech, mek) {
         // If they are still typing, keep waiting for the next message and answer
         // both at once in a single reply.
         global.typingUsers = global.typingUsers || {};
-        if (!global.__presenceHooked && EliteProTech.ev) {
+        if (!global.__presenceHooked && CbsScover.ev) {
             global.__presenceHooked = true;
-            EliteProTech.ev.on('presence.update', ({ id, presences }) => {
+            CbsScover.ev.on('presence.update', ({ id, presences }) => {
                 for (const jid of Object.keys(presences || {})) {
                     const p = presences[jid]?.lastKnownPresence;
                     if (p === 'composing' || p === 'recording') global.typingUsers[jid] = Date.now();
@@ -1689,7 +1689,7 @@ global.humanChatbot = async function humanChatbot(EliteProTech, mek) {
                 void id;
             });
         }
-        EliteProTech.presenceSubscribe?.(sender).catch?.(() => {});
+        CbsScover.presenceSubscribe?.(sender).catch?.(() => {});
 
         const stillTyping = Date.now() - (global.typingUsers[sender] || 0) < 8000;
         const waitWindow = stillTyping ? 9000 : 2500;
@@ -1716,11 +1716,11 @@ global.humanChatbot = async function humanChatbot(EliteProTech, mek) {
             buf.timer = null;
             buf.running = true;
             try {
-                await generateAndSend(EliteProTech, from, sender, last, texts, audio, images, video);
+                await generateAndSend(CbsScover, from, sender, last, texts, audio, images, video);
             } catch (err) {
                 // The target chat gets no reply; the exact error goes to the log
                 // and to the owner's DM only.
-                await reportChatbotError(EliteProTech, from, last, chatbotMode(from), err);
+                await reportChatbotError(CbsScover, from, last, chatbotMode(from), err);
             } finally {
                 buf.running = false;
                 if (!buf.timer) {
@@ -1735,7 +1735,7 @@ global.humanChatbot = async function humanChatbot(EliteProTech, mek) {
         buf.timer = setTimeout(flush, waitWindow);
 
     } catch (err) {
-        await reportChatbotError(EliteProTech, mek?.key?.remoteJid, mek, chatbotMode(mek?.key?.remoteJid), err);
+        await reportChatbotError(CbsScover, mek?.key?.remoteJid, mek, chatbotMode(mek?.key?.remoteJid), err);
     }
 
 };
@@ -1873,12 +1873,12 @@ function digitsOf(jid) {
     return String(jid || '').split('@')[0].split(':')[0].replace(/\D+/g, '');
 }
 
-global.antiDeleteIsOwnerDeleter = function antiDeleteIsOwnerDeleter(EliteProTech, deletedBy) {
+global.antiDeleteIsOwnerDeleter = function antiDeleteIsOwnerDeleter(CbsScover, deletedBy) {
     const who = digitsOf(deletedBy);
     if (!who) return false;
     const mine = new Set([
-        digitsOf(EliteProTech?.user?.id),
-        digitsOf(EliteProTech?.user?.lid),
+        digitsOf(CbsScover?.user?.id),
+        digitsOf(CbsScover?.user?.lid),
         digitsOf(OWNER_NUMBER)
     ].filter(Boolean));
     return mine.has(who);
@@ -1926,14 +1926,14 @@ function unwrapViewOnce(msg) {
     return { msg: clean, viewOnce };
 }
 
-global.restoreDeletedMessage = async function restoreDeletedMessage(EliteProTech, from, note, message, quoted, mentions) {
+global.restoreDeletedMessage = async function restoreDeletedMessage(CbsScover, from, note, message, quoted, mentions) {
     const baileys = require('baileys');
     const { downloadMediaMessage, downloadContentFromMessage } = baileys;
 
     const { msg, viewOnce } = unwrapViewOnce(message);
     const header = `${DELETED_MARK}${viewOnce ? ' (view once — recovered)' : ''}\n${note}\n`;
     const send = (content) =>
-        EliteProTech.sendMessage(from, { ...content, mentions, contextInfo: { ...DELETED_CONTEXT, mentionedJid: mentions } });
+        CbsScover.sendMessage(from, { ...content, mentions, contextInfo: { ...DELETED_CONTEXT, mentionedJid: mentions } });
 
     const MEDIA_TYPES = {
         imageMessage: 'image',
@@ -1945,8 +1945,8 @@ global.restoreDeletedMessage = async function restoreDeletedMessage(EliteProTech
 
     const media = async () => {
         const attempts = [
-            () => downloadMediaMessage({ key: quoted?.key, message: msg }, 'buffer', {}, { reuploadRequest: EliteProTech.updateMediaMessage }),
-            () => downloadMediaMessage({ key: quoted?.key, message }, 'buffer', {}, { reuploadRequest: EliteProTech.updateMediaMessage }),
+            () => downloadMediaMessage({ key: quoted?.key, message: msg }, 'buffer', {}, { reuploadRequest: CbsScover.updateMediaMessage }),
+            () => downloadMediaMessage({ key: quoted?.key, message }, 'buffer', {}, { reuploadRequest: CbsScover.updateMediaMessage }),
             async () => {
                 const type = Object.keys(MEDIA_TYPES).find(k => msg[k]);
                 if (!type) throw new Error('no media node');
@@ -2038,11 +2038,11 @@ global.antiDeleteGroupEnabled = function antiDeleteGroupEnabled(jid) {
     return !!global.antiDeleteGroupMode(jid);
 };
 
-global.enforceAntiDeleteGroup = async function enforceAntiDeleteGroup(EliteProTech, remoteJid, deletedBy, sentBy, message, quoted) {
+global.enforceAntiDeleteGroup = async function enforceAntiDeleteGroup(CbsScover, remoteJid, deletedBy, sentBy, message, quoted) {
     try {
         if (!remoteJid || !String(remoteJid).endsWith('@g.us')) return false;
         // The owner's own deletions are never restored.
-        if (global.antiDeleteIsOwnerDeleter(EliteProTech, deletedBy)) return false;
+        if (global.antiDeleteIsOwnerDeleter(CbsScover, deletedBy)) return false;
 
         const mode = global.antiDeleteGroupMode(remoteJid);
         if (!mode) {
@@ -2051,7 +2051,7 @@ global.enforceAntiDeleteGroup = async function enforceAntiDeleteGroup(EliteProTe
         }
 
         const target = mode === 'private'
-            ? `${String(EliteProTech?.user?.id || OWNER_NUMBER).split(':')[0].split('@')[0]}@s.whatsapp.net`
+            ? `${String(CbsScover?.user?.id || OWNER_NUMBER).split(':')[0].split('@')[0]}@s.whatsapp.net`
             : remoteJid;
 
         const warn =
@@ -2062,7 +2062,7 @@ global.enforceAntiDeleteGroup = async function enforceAntiDeleteGroup(EliteProTe
             `💬 The message is below:`;
 
         const restored = await global.restoreDeletedMessage(
-            EliteProTech,
+            CbsScover,
             target,
             warn,
             message,
@@ -2127,9 +2127,9 @@ function normalizeGroupId(input) {
     return digits ? `${digits}@g.us` : '';
 }
 
-global.handleWelcomeCommand = async function handleWelcomeCommand(EliteProTech, m, args, prefix) {
+global.handleWelcomeCommand = async function handleWelcomeCommand(CbsScover, m, args, prefix) {
     const chatId = m.chat;
-    const reply = (text) => EliteProTech.sendMessage(chatId, { text }, { quoted: m });
+    const reply = (text) => CbsScover.sendMessage(chatId, { text }, { quoted: m });
     const parts = (Array.isArray(args) ? args : String(args || '').split(/\s+/))
         .map(a => String(a || '').trim()).filter(Boolean);
     const db = readWelcomeDB();
@@ -2191,11 +2191,11 @@ global.handleWelcomeCommand = async function handleWelcomeCommand(EliteProTech, 
 /* Resolve the newsletter (channel) jid from the current channel invite link so
    the card in the welcome/goodbye message points at the right channel. */
 let CHANNEL_JID_CACHE = null;
-global.resolveChannelJid = async function resolveChannelJid(EliteProTech) {
+global.resolveChannelJid = async function resolveChannelJid(CbsScover) {
     if (CHANNEL_JID_CACHE !== null) return CHANNEL_JID_CACHE;
     const code = String(CHANNEL_LINK).split('/').filter(Boolean).pop();
     try {
-        const meta = await EliteProTech.newsletterMetadata('invite', code);
+        const meta = await CbsScover.newsletterMetadata('invite', code);
         CHANNEL_JID_CACHE = meta?.id || meta?.jid || '';
     } catch {
         CHANNEL_JID_CACHE = '';
@@ -2204,16 +2204,16 @@ global.resolveChannelJid = async function resolveChannelJid(EliteProTech) {
 };
 
 
-global.handleGroupWelcome = async function handleGroupWelcome(EliteProTech, anu) {
+global.handleGroupWelcome = async function handleGroupWelcome(CbsScover, anu) {
     try {
         const chatId = anu?.id;
         if (!chatId || !welcomeEnabled(chatId)) return;
         if (!['add', 'remove'].includes(anu.action)) return;
 
-        const metadata = await EliteProTech.groupMetadata(chatId);
+        const metadata = await CbsScover.groupMetadata(chatId);
         const groupName = metadata.subject;
         const groupDesc = metadata.desc || 'No description available.';
-        const channelJid = await global.resolveChannelJid(EliteProTech);
+        const channelJid = await global.resolveChannelJid(CbsScover);
 
         // Baileys 7 sends participants as objects ({ id, phoneNumber, admin });
         // older versions send plain jid strings. Always reduce to a jid string.
@@ -2241,13 +2241,13 @@ global.handleGroupWelcome = async function handleGroupWelcome(EliteProTech, anu)
             const userTag = `@${realNum.split('@')[0]}`;
 
             let ppuser;
-            try { ppuser = await EliteProTech.profilePictureUrl(realNum, 'image'); }
+            try { ppuser = await CbsScover.profilePictureUrl(realNum, 'image'); }
             catch { ppuser = 'https://i.ibb.co/WRsDhwd/img-jxl3d4p3.png'; }
 
             // Re-read so the count already includes (or excludes) this person.
             let memberCount = (metadata.participants || []).length;
             try {
-                const fresh = await EliteProTech.groupMetadata(chatId);
+                const fresh = await CbsScover.groupMetadata(chatId);
                 memberCount = (fresh.participants || []).length;
             } catch {}
 
@@ -2286,14 +2286,14 @@ global.handleGroupWelcome = async function handleGroupWelcome(EliteProTech, anu)
             // once and fall back to text so it is never silently skipped.
             const payload = { image: { url: ppuser }, caption, contextInfo };
             try {
-                await EliteProTech.sendMessage(chatId, payload, { quoted: null });
+                await CbsScover.sendMessage(chatId, payload, { quoted: null });
             } catch (first) {
                 console.error('Welcome send retry:', first?.message || first);
                 try {
-                    await EliteProTech.sendMessage(chatId, payload, { quoted: null });
+                    await CbsScover.sendMessage(chatId, payload, { quoted: null });
                 } catch (second) {
                     console.error('Welcome image failed, sending text:', second?.message || second);
-                    await EliteProTech.sendMessage(chatId, { text: caption, contextInfo }, { quoted: null });
+                    await CbsScover.sendMessage(chatId, { text: caption, contextInfo }, { quoted: null });
                 }
             }
 
@@ -2321,20 +2321,20 @@ function targetJidFrom(m, args) {
     return '';
 }
 
-global.handleDpDownload = async function handleDpDownload(EliteProTech, m, args, prefix) {
-    const reply = (text) => EliteProTech.sendMessage(m.chat, { text }, { quoted: m });
+global.handleDpDownload = async function handleDpDownload(CbsScover, m, args, prefix) {
+    const reply = (text) => CbsScover.sendMessage(m.chat, { text }, { quoted: m });
     const target = targetJidFrom(m, args);
     if (!target) {
         return reply(`🖼️ Send *${prefix}dpdownload* inside the person's DM, or *${prefix}dpdownload <phone number>*.`);
     }
     let url;
     try {
-        url = await EliteProTech.profilePictureUrl(target, 'image');
+        url = await CbsScover.profilePictureUrl(target, 'image');
     } catch {
         return reply(`❌ No profile picture found for *${String(target).split('@')[0]}* (or it is hidden from you).`);
     }
     try {
-        await EliteProTech.sendMessage(m.chat, {
+        await CbsScover.sendMessage(m.chat, {
             image: { url },
             caption: `🖼️ Profile picture of *${String(target).split('@')[0]}*`
         }, { quoted: m });
@@ -2343,14 +2343,14 @@ global.handleDpDownload = async function handleDpDownload(EliteProTech, m, args,
     }
 };
 
-global.handleChatId = async function handleChatId(EliteProTech, m, args, prefix) {
-    const reply = (text) => EliteProTech.sendMessage(m.chat, { text }, { quoted: m });
+global.handleChatId = async function handleChatId(CbsScover, m, args, prefix) {
+    const reply = (text) => CbsScover.sendMessage(m.chat, { text }, { quoted: m });
     const digits = String(args || '').replace(/\D/g, '');
     if (digits.length >= 7) {
         const jid = `${digits}@s.whatsapp.net`;
         let exists = null;
         try {
-            const res = await EliteProTech.onWhatsApp(jid);
+            const res = await CbsScover.onWhatsApp(jid);
             exists = Array.isArray(res) && res.length ? !!res[0].exists : false;
         } catch {}
         return reply(
@@ -2442,9 +2442,9 @@ function normalizeUserJid(input) {
     return digits ? `${digits}@s.whatsapp.net` : '';
 }
 
-global.handleTickCommand = async function handleTickCommand(EliteProTech, m, args, kind, prefix) {
+global.handleTickCommand = async function handleTickCommand(CbsScover, m, args, kind, prefix) {
     const chatId = m.chat;
-    const reply = (text) => EliteProTech.sendMessage(chatId, { text }, { quoted: m });
+    const reply = (text) => CbsScover.sendMessage(chatId, { text }, { quoted: m });
     const parts = String(args || '').trim().split(/\s+/).filter(Boolean).map(p => p.toLowerCase());
     const db = readTicksDB();
     const label = 'DOUBLE TICK (always delivered)';
@@ -2504,25 +2504,25 @@ global.handleTickCommand = async function handleTickCommand(EliteProTech, m, arg
 };
 
 /* Wrap the socket once so receipts/presence obey the tick settings. */
-global.installTickHooks = function installTickHooks(EliteProTech) {
-    if (!EliteProTech || EliteProTech.__tickHooked) return;
-    EliteProTech.__tickHooked = true;
+global.installTickHooks = function installTickHooks(CbsScover) {
+    if (!CbsScover || CbsScover.__tickHooked) return;
+    CbsScover.__tickHooked = true;
 
     const jidOf = (key) => String(key?.remoteJid || key || '');
 
-    const origSendReceipt = EliteProTech.sendReceipt?.bind(EliteProTech);
+    const origSendReceipt = CbsScover.sendReceipt?.bind(CbsScover);
     if (origSendReceipt) {
-        EliteProTech.sendReceipt = async (jid, participant, messageIds, type) => {
+        CbsScover.sendReceipt = async (jid, participant, messageIds, type) => {
             const mode = tickMode(jid);
             if (mode === 'double' && (type === 'read' || type === 'read-self')) return;
             return origSendReceipt(jid, participant, messageIds, type);
         };
-        EliteProTech.__origSendReceipt = origSendReceipt;
+        CbsScover.__origSendReceipt = origSendReceipt;
     }
 
-    const origSendReceipts = EliteProTech.sendReceipts?.bind(EliteProTech);
+    const origSendReceipts = CbsScover.sendReceipts?.bind(CbsScover);
     if (origSendReceipts) {
-        EliteProTech.sendReceipts = async (keys, type) => {
+        CbsScover.sendReceipts = async (keys, type) => {
             const allowed = (keys || []).filter(k => {
                 const mode = tickMode(jidOf(k));
                 if (mode === 'double' && (type === 'read' || type === 'read-self')) return false;
@@ -2533,9 +2533,9 @@ global.installTickHooks = function installTickHooks(EliteProTech) {
         };
     }
 
-    const origReadMessages = EliteProTech.readMessages?.bind(EliteProTech);
+    const origReadMessages = CbsScover.readMessages?.bind(CbsScover);
     if (origReadMessages) {
-        EliteProTech.readMessages = async (keys) => {
+        CbsScover.readMessages = async (keys) => {
             const allowed = (keys || []).filter(k => !tickMode(jidOf(k)));   // no blue tick
             if (!allowed.length) return;
             return origReadMessages(allowed);
@@ -2561,17 +2561,17 @@ global.installTickHooks = function installTickHooks(EliteProTech) {
         } catch { return false; }
     };
 
-    const origSendNode = EliteProTech.sendNode?.bind(EliteProTech);
+    const origSendNode = CbsScover.sendNode?.bind(CbsScover);
     if (origSendNode) {
-        EliteProTech.sendNode = async (node) => {
+        CbsScover.sendNode = async (node) => {
             if (isBlockedNode(node)) return;
             return origSendNode(node);
         };
     }
 
-    const origQuery = EliteProTech.query?.bind(EliteProTech);
+    const origQuery = CbsScover.query?.bind(CbsScover);
     if (origQuery) {
-        EliteProTech.query = async (node, timeout) => {
+        CbsScover.query = async (node, timeout) => {
             if (isBlockedNode(node)) return;
             return origQuery(node, timeout);
         };
@@ -2581,13 +2581,13 @@ global.installTickHooks = function installTickHooks(EliteProTech) {
 
 /* For double tick: push the delivery receipt ourselves for every incoming
    message, so the sender sees 2 grey ticks even while we look offline. */
-global.applyTickOnMessage = async function applyTickOnMessage(EliteProTech, m) {
+global.applyTickOnMessage = async function applyTickOnMessage(CbsScover, m) {
     try {
-        global.installTickHooks(EliteProTech);
+        global.installTickHooks(CbsScover);
         if (!m?.key || m.key.fromMe) return;
         const jid = String(m.key.remoteJid || '');
         if (tickMode(jid) !== 'double') return;
-        const send = EliteProTech.__origSendReceipt || EliteProTech.sendReceipt?.bind(EliteProTech);
+        const send = CbsScover.__origSendReceipt || CbsScover.sendReceipt?.bind(CbsScover);
         if (!send) return;
         await send(jid, m.key.participant || undefined, [m.key.id], undefined);
     } catch (err) {
@@ -2706,15 +2706,15 @@ function withVersionedMenu(caption) {
 }
 
 
-global.sendMenu = async function sendMenu(EliteProTech, m, image, caption) {
+global.sendMenu = async function sendMenu(CbsScover, m, image, caption) {
     const img = typeof image === 'string' ? { url: image } : image;
     const full = withVersionedMenu(caption);
 
     try {
-        await EliteProTech.sendMessage(m.chat, { image: img, caption: full }, { quoted: m });
+        await CbsScover.sendMessage(m.chat, { image: img, caption: full }, { quoted: m });
     } catch (err) {
         console.error('Menu image failed, sending text menu:', err?.message || err);
-        await EliteProTech.sendMessage(m.chat, { text: full }, { quoted: m }).catch(() => {});
+        await CbsScover.sendMessage(m.chat, { text: full }, { quoted: m }).catch(() => {});
     }
 };
 
@@ -2751,11 +2751,11 @@ function patchSource(source) {
     let code = String(source);
 
     // Chatbot -> fully local human-style Gemini chatbot.
-    const chatbotSig = 'async function handleChatbot(EliteProTech,mek){';
+    const chatbotSig = 'async function handleChatbot(CbsScover,mek){';
     if (code.includes(chatbotSig)) {
         code = code.replace(
             chatbotSig,
-            `${chatbotSig}\n    return global.humanChatbot(EliteProTech, mek)\n}\nasync function legacyHandleChatbot(EliteProTech,mek){`
+            `${chatbotSig}\n    return global.humanChatbot(CbsScover, mek)\n}\nasync function legacyHandleChatbot(CbsScover,mek){`
         );
     } else {
         console.log('⚠️ Chatbot patch target not found.');
@@ -2763,7 +2763,7 @@ function patchSource(source) {
 
     // Anti-delete: render the original content with the deleted mark on top,
     // and enforce anti-delete-group when it is switched on for that group.
-    const restoreSig = 'async function restoreMessage(EliteProTech, from, note, msg, quoted, mentions) {';
+    const restoreSig = 'async function restoreMessage(CbsScover, from, note, msg, quoted, mentions) {';
     if (code.includes(restoreSig)) {
         code = code.replace(
             restoreSig,
@@ -2773,18 +2773,18 @@ function patchSource(source) {
     const _sent = mentions?.[1]
     let _handled = false
     // Never recover a message the bot owner deleted himself.
-    if (global.antiDeleteIsOwnerDeleter(EliteProTech, _by)) return
+    if (global.antiDeleteIsOwnerDeleter(CbsScover, _by)) return
     // When anti-delete is off for that chat, nothing is ever sent back.
     if (_jid && !global.antiDeleteActiveFor(_jid)) return
 
-    try { _handled = await global.enforceAntiDeleteGroup(EliteProTech, _jid, _by, _sent, msg, quoted) } catch (e) { console.error(e?.message || e) }
+    try { _handled = await global.enforceAntiDeleteGroup(CbsScover, _jid, _by, _sent, msg, quoted) } catch (e) { console.error(e?.message || e) }
     if (_handled) return true
     // Group messages are only ever handled by anti-delete-group.
     if (String(_jid || '').endsWith('@g.us')) return false
 
-    return global.restoreDeletedMessage(EliteProTech, from, note, msg, quoted, mentions)
+    return global.restoreDeletedMessage(CbsScover, from, note, msg, quoted, mentions)
 }
-async function legacyRestoreMessage(EliteProTech, from, note, msg, quoted, mentions) {`
+async function legacyRestoreMessage(CbsScover, from, note, msg, quoted, mentions) {`
         );
     } else {
         console.log('⚠️ Anti-delete restore patch target not found.');
@@ -2797,10 +2797,10 @@ async function legacyRestoreMessage(EliteProTech, from, note, msg, quoted, menti
     }
 
     // Welcome / goodbye: run our own card (CBS-SCOVER branding, per-group switch).
-    const welcomeWatcher = "EliteProTech.ev.on('group-participants.update', async (anu) => {";
+    const welcomeWatcher = "CbsScover.ev.on('group-participants.update', async (anu) => {";
     if (code.includes(welcomeWatcher)) {
         code = code.split(welcomeWatcher).join(
-            `EliteProTech.ev.on('group-participants.update', async (anu) => {\n    return global.handleGroupWelcome(EliteProTech, anu)\n});\nEliteProTech.ev.on('__legacy-group-participants.update', async (anu) => {`
+            `CbsScover.ev.on('group-participants.update', async (anu) => {\n    return global.handleGroupWelcome(CbsScover, anu)\n});\nCbsScover.ev.on('__legacy-group-participants.update', async (anu) => {`
         );
     } else {
         console.log('⚠️ Welcome watcher patch target not found.');
@@ -2809,15 +2809,15 @@ async function legacyRestoreMessage(EliteProTech, from, note, msg, quoted, menti
 
     // Branding
     code = code
-        .split('ElitePro, an intelligent assistant developed by Chinedu (cyrilix-xmd)')
+        .split('CBS-SCOVER, an intelligent assistant developed by Chinedu (cyrilix-xmd)')
         .join('CBS-SCOVER, an intelligent assistant developed by codebreakers')
         .split('Owner: Chinedu-md').join('Owner: codebreakers')
         .split('2347047504860').join(OWNER_NUMBER)
-        .split('https://t.me/eliteprotechs').join('https://t.me/cbsscover')
-        .split('https://eliteprotech.zone.id/').join('https://codebreakers.uk')
-        .split('https://www.youtube.com/@eliteprotechs').join(CHANNEL_LINK)
-        .split('https://eliteproverified.vercel.app/').join(GROUP_LINK)
-        .split('./database/elitepropic.jpg').join('./database/cbs-scover.jpg');
+        .split('https://whatsapp.com/channel/0029Vb8CfvXDjiOVpsJpdW3j').join('https://t.me/cbsscover')
+        .split('https://github.com/2008amir/cbs-scover-v6').join('https://codebreakers.uk')
+        .split('https://whatsapp.com/channel/0029Vb8CfvXDjiOVpsJpdW3j').join(CHANNEL_LINK)
+        .split('https://github.com/2008amir/cbs-scover-v6').join(GROUP_LINK)
+        .split('./database/cbs-scover.jpg').join('./database/cbs-scover.jpg');
 
     /* ---- Anti-delete memory: 24-hour store, own messages included ---- */
 
@@ -2856,8 +2856,8 @@ async function legacyRestoreMessage(EliteProTech, from, note, msg, quoted, menti
     // Avoid reconnect storms from recursive start calls after transient closes.
     // Patch every reconnect return form used inside the upstream source.
     code = code
-        .replace(/return\s+startEliteProTech\(\);/g, 'return global.scheduleReconnect(startEliteProTech, 7000);')
-        .replace(/return\s+startEliteProTech\(\)/g, 'return global.scheduleReconnect(startEliteProTech, 7000)');
+        .replace(/return\s+startCbsScover\(\);/g, 'return global.scheduleReconnect(startCbsScover, 7000);')
+        .replace(/return\s+startCbsScover\(\)/g, 'return global.scheduleReconnect(startCbsScover, 7000)');
 
     /* ---- Login/pairing: ask for the number in the terminal ---- */
 
@@ -2869,14 +2869,14 @@ async function legacyRestoreMessage(EliteProTech, from, note, msg, quoted, menti
 
     // Replace the whole pairing block with our own: it prompts in the terminal,
     // waits for the socket to be open, and retries instead of crashing.
-    const pairStart = 'if (pairingCode && !EliteProTech.authState.creds.registered) {';
+    const pairStart = 'if (pairingCode && !CbsScover.authState.creds.registered) {';
     const pairEnd = '      }, 3000)\n   }';
     const si = code.indexOf(pairStart);
     const ei = si === -1 ? -1 : code.indexOf(pairEnd, si);
     if (si !== -1 && ei !== -1) {
         code = code.slice(0, si) +
-            `if (pairingCode && !EliteProTech.authState.creds.registered) {
-      global.startPairing(EliteProTech, phoneNumber, rl, question, PHONENUMBER_MCC)
+            `if (pairingCode && !CbsScover.authState.creds.registered) {
+      global.startPairing(CbsScover, phoneNumber, rl, question, PHONENUMBER_MCC)
    }` + code.slice(ei + pairEnd.length);
     } else {
         console.log('⚠️ Pairing block patch target not found.');
@@ -2913,7 +2913,7 @@ global.clearSession = function clearSession() {
  * WhatsApp number right in the terminal (panel console works too) and
  * prints the 8-digit pairing code.
  * ------------------------------------------------------------------ */
-global.startPairing = async function startPairing(EliteProTech, envNumber, rl, question, PHONENUMBER_MCC) {
+global.startPairing = async function startPairing(CbsScover, envNumber, rl, question, PHONENUMBER_MCC) {
     const chalk = global.__pairChalk || (global.__pairChalk = (() => {
         try { return require('chalk'); } catch { 
             const id = (v) => String(v);
@@ -2942,7 +2942,7 @@ global.startPairing = async function startPairing(EliteProTech, envNumber, rl, q
     };
 
     let closed = false;
-    EliteProTech.ev.on('connection.update', (u) => { if (u?.connection === 'close') closed = true; });
+    CbsScover.ev.on('connection.update', (u) => { if (u?.connection === 'close') closed = true; });
 
     let number = clean(envNumber || process.env.PAIR_NUMBER);
 
@@ -2963,15 +2963,15 @@ global.startPairing = async function startPairing(EliteProTech, envNumber, rl, q
     }
 
     for (let attempt = 1; attempt <= 3; attempt++) {
-        if (EliteProTech.authState.creds.registered) return;
+        if (CbsScover.authState.creds.registered) return;
         try {
-            // Match ElitePro's pairing flow: the socket is ready for pairing after
+            // Match CBS-SCOVER's pairing flow: the socket is ready for pairing after
             // a short delay. Do not inspect private ws fields; their shape differs
             // between Baileys builds and caused a silent 30-second wait.
             if (attempt === 1) await new Promise((r) => setTimeout(r, 3000));
             console.log(chalk.cyan('🔐 Requesting your WhatsApp pairing code...'));
             let pcode = await Promise.race([
-                EliteProTech.requestPairingCode(number),
+                CbsScover.requestPairingCode(number),
                 new Promise((_, reject) => setTimeout(() => reject(new Error('WhatsApp pairing request timed out')), 20000))
             ]);
             if (!pcode) throw new Error('WhatsApp returned an empty pairing code');
@@ -2996,7 +2996,7 @@ global.startPairing = async function startPairing(EliteProTech, envNumber, rl, q
 /* =====================================================================
    STARTUP
    The bootstrap/handler source now lives inside this repository
-   (lib/v1/source.js), taken from the updated ELITE-PRO-V1 release. No
+   (lib/v1/source.js), taken from the updated CBS-SCOVER-V1 release. No
    access link, license host or remote download is used any more, so the
    bot starts fully offline-capable and can never be disabled remotely.
    ===================================================================== */

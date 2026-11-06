@@ -8,14 +8,14 @@ function quotedKey(m) {
     }
 }
 
-let handler = async (m, { EliteProTech, text }) => {
+let handler = async (m, { CbsScover, text }) => {
     const key = quotedKey(m)
     if (!key) return await m.reply(`Reply to one of the bot's messages.\n\nUsage: ${global.prefix || ''}edit <new text>`)
     if (!m.quoted.fromMe) return await m.reply('You can only edit a message sent by this bot.')
     if (!text.trim()) return await m.reply(`Usage: ${global.prefix || ''}edit <new text>`)
 
     try {
-        await EliteProTech.sendMessage(m.chat, { text: text.trim(), edit: key })
+        await CbsScover.sendMessage(m.chat, { text: text.trim(), edit: key })
     } catch (error) {
         await m.reply(`Unable to edit that message: ${error.message || String(error)}`)
     }

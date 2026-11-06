@@ -10,7 +10,7 @@ function extFromMime(mime = '') {
     return 'bin'
 }
 
-let handler = async (m, { EliteProTech }) => {
+let handler = async (m, { CbsScover }) => {
     const target = ['videoMessage', 'stickerMessage', 'imageMessage'].includes(m.quoted?.mtype)
         ? m.quoted
         : (['videoMessage', 'stickerMessage', 'imageMessage'].includes(m.mtype) ? m : null)
@@ -26,7 +26,7 @@ let handler = async (m, { EliteProTech }) => {
         const ext = extFromMime(target.mimetype)
         const mp4Buffer = await toVideo(buffer, ext)
 
-        await EliteProTech.sendMessage(m.chat, {
+        await CbsScover.sendMessage(m.chat, {
             video: mp4Buffer,
             mimetype: 'video/mp4',
             fileName: `converted-${Date.now()}.mp4`

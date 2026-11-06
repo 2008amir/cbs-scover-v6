@@ -1,4 +1,4 @@
-let handler = async (EliteProTech, { messages, type }) => {
+let handler = async (CbsScover, { messages, type }) => {
     if (global.botname || type !== 'notify' || !global.autoRead) return
 
     const keys = (messages || [])
@@ -6,7 +6,7 @@ let handler = async (EliteProTech, { messages, type }) => {
         .map(message => message.key)
 
     if (keys.length) {
-        await EliteProTech.readMessages(keys).catch(() => {})
+        await CbsScover.readMessages(keys).catch(() => {})
     }
 }
 

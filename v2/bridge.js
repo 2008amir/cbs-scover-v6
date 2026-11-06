@@ -1,7 +1,7 @@
 /* ============================================================
    CBS-SCOVER-V2 bridge
    ------------------------------------------------------------
-   The complete ELITE-PRO-V2 bot lives in this folder untouched.
+   The complete CBS-SCOVER-V2 bot lives in this folder untouched.
    Instead of opening a second WhatsApp connection and a second
    HTTP server, this bridge runs the real V2 plugin engine inside
    the V1 process, on the V1 socket, so both versions live on one
@@ -43,7 +43,7 @@ function ensureGlobals() {
     }
     global.botName = global.botName || global.botname || 'CBS-SCOVER'
     global.ownerName = global.ownerName || global.ownername || 'codebreakers'
-    global.repo = global.repo || 'https://github.com/EliteProTech/ELITE-PRO-V2'
+    global.repo = global.repo || 'https://github.com/2008amir/cbs-scover-v6'
     /* V1 answers everyone, so V2 must not run in self mode. */
     global.botMode = 'public'
 }

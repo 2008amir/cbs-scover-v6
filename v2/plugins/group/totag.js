@@ -7,8 +7,8 @@ const MEDIA_KEY_BY_MTYPE = {
     audioMessage: 'audio'
 }
 
-let handler = async (m, { EliteProTech, text }) => {
-    const metadata = await getGroupMetadata(EliteProTech, m.chat, true)
+let handler = async (m, { CbsScover, text }) => {
+    const metadata = await getGroupMetadata(CbsScover, m.chat, true)
     const participants = metadata?.participants || []
 
     if (participants.length === 0) {
@@ -17,7 +17,7 @@ let handler = async (m, { EliteProTech, text }) => {
 
     const mentions = []
     for (const p of participants) {
-        const jid = EliteProTech.decodeJid(p.phoneNumber || await EliteProTech.resolveLidToJid(p.id) || p.id)
+        const jid = CbsScover.decodeJid(p.phoneNumber || await CbsScover.resolveLidToJid(p.id) || p.id)
         if (jid && !mentions.includes(jid)) mentions.push(jid)
     }
 
@@ -35,7 +35,7 @@ let handler = async (m, { EliteProTech, text }) => {
             if (m.quoted.msg?.ptt) payload.ptt = true
         }
 
-        await EliteProTech.sendMessage(m.chat, payload, { quoted: m })
+        await CbsScover.sendMessage(m.chat, payload, { quoted: m })
         return
     }
 
@@ -43,7 +43,7 @@ let handler = async (m, { EliteProTech, text }) => {
         return await m.reply(`Provide a message or reply to something to tag everyone with it.\nUsage: ${global.prefix || ''}totag <message>`)
     }
 
-    await EliteProTech.sendMessage(m.chat, { text: caption, mentions }, { quoted: m })
+    await CbsScover.sendMessage(m.chat, { text: caption, mentions }, { quoted: m })
 }
 
 handler.command = []

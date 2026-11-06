@@ -1,7 +1,7 @@
 import { getGroupMetadata } from '../../lib/myfunc.js'
 
-async function targetsFromMessage(EliteProTech, m, args) {
-    const metadata = await getGroupMetadata(EliteProTech, m.chat, true)
+async function targetsFromMessage(CbsScover, m, args) {
+    const metadata = await getGroupMetadata(CbsScover, m.chat, true)
     const participants = metadata?.participants || []
     const targets = new Map()
 
@@ -18,11 +18,11 @@ async function targetsFromMessage(EliteProTech, m, args) {
 
         if (jid.endsWith('@lid')) {
             try {
-                jid = await EliteProTech.resolveLidToJid(jid)
+                jid = await CbsScover.resolveLidToJid(jid)
             } catch {}
         }
 
-        jid = EliteProTech.decodeJid(jid)
+        jid = CbsScover.decodeJid(jid)
 
         if (!jid) return
 
@@ -67,8 +67,8 @@ function participantMatches(participant, jid) {
     return values.some(value => value.split('@')[0] === jidNumber)
 }
 
-async function getMentionTargets(EliteProTech, chat, targets) {
-    const metadata = await getGroupMetadata(EliteProTech, chat, true)
+async function getMentionTargets(CbsScover, chat, targets) {
+    const metadata = await getGroupMetadata(CbsScover, chat, true)
     const participants = metadata?.participants || []
     const resolved = []
     const seen = new Set()
@@ -82,11 +82,11 @@ async function getMentionTargets(EliteProTech, chat, targets) {
 
         if (jid.endsWith('@lid')) {
             try {
-                jid = await EliteProTech.resolveLidToJid(jid)
+                jid = await CbsScover.resolveLidToJid(jid)
             } catch {}
         }
 
-        jid = EliteProTech.decodeJid(jid)
+        jid = CbsScover.decodeJid(jid)
 
         if (!jid) continue
 
@@ -105,9 +105,9 @@ async function getMentionTargets(EliteProTech, chat, targets) {
     return resolved
 }
 
-async function replySuccess(m, EliteProTech, action, targets, resolvedMentions) {
+async function replySuccess(m, CbsScover, action, targets, resolvedMentions) {
     const entries = resolvedMentions || await getMentionTargets(
-        EliteProTech,
+        CbsScover,
         m.chat,
         targets
     )
@@ -127,7 +127,7 @@ async function replySuccess(m, EliteProTech, action, targets, resolvedMentions) 
         )
         : [`• A member ${verb}!`]
 
-    await EliteProTech.sendMessage(
+    await CbsScover.sendMessage(
         m.chat,
         {
             text: lines.join('\n'),
@@ -137,8 +137,8 @@ async function replySuccess(m, EliteProTech, action, targets, resolvedMentions) 
     )
 }
 
-let handler = async (m, { EliteProTech, args, command }) => {
-    const targets = await targetsFromMessage(EliteProTech, m, args)
+let handler = async (m, { CbsScover, args, command }) => {
+    const targets = await targetsFromMessage(CbsScover, m, args)
 
     if (!targets.length) {
         return await m.reply(
@@ -160,13 +160,13 @@ let handler = async (m, { EliteProTech, args, command }) => {
     }
 
     const mentions = await getMentionTargets(
-        EliteProTech,
+        CbsScover,
         m.chat,
         targets
     )
 
     try {
-        const result = await EliteProTech.groupParticipantsUpdate(
+        const result = await CbsScover.groupParticipantsUpdate(
             m.chat,
             targets,
             action
@@ -179,7 +179,7 @@ let handler = async (m, { EliteProTech, args, command }) => {
         if (!failed.length) {
             return await replySuccess(
                 m,
-                EliteProTech,
+                CbsScover,
                 action,
                 targets,
                 mentions
@@ -191,7 +191,7 @@ let handler = async (m, { EliteProTech, args, command }) => {
         )
     } catch (error) {
         const metadata = await getGroupMetadata(
-            EliteProTech,
+            CbsScover,
             m.chat,
             true
         )
@@ -238,7 +238,7 @@ let handler = async (m, { EliteProTech, args, command }) => {
         if (completed) {
             return await replySuccess(
                 m,
-                EliteProTech,
+                CbsScover,
                 action,
                 targets,
                 mentions

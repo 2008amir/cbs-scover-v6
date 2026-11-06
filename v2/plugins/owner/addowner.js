@@ -14,7 +14,7 @@ function readOwners() {
 function writeOwners(owners) {
     fs.writeFileSync(OWNER_DB_PATH, JSON.stringify(owners, null, 2))
 }
-async function extractOwner(m, EliteProTech, args) {
+async function extractOwner(m, CbsScover, args) {
     const originalJid = m.mentionedJid?.[0] || m.quoted?.sender
     if (!originalJid) {
         const value = args.find(arg => !arg.startsWith('@'))
@@ -24,11 +24,11 @@ async function extractOwner(m, EliteProTech, args) {
 
     let jid = originalJid
     if (jid.endsWith('@lid') && m.isGroup) {
-        const metadata = await getGroupMetadata(EliteProTech, m.chat, true)
+        const metadata = await getGroupMetadata(CbsScover, m.chat, true)
         const participant = metadata?.participants?.find(p => p.id === jid || p.lid === jid)
         jid = participant?.phoneNumber || jid
     }
-    if (jid.endsWith('@lid')) jid = await EliteProTech.resolveLidToJid(jid)
+    if (jid.endsWith('@lid')) jid = await CbsScover.resolveLidToJid(jid)
     if (!jid || jid.endsWith('@lid')) return null
 
     return {
@@ -37,13 +37,13 @@ async function extractOwner(m, EliteProTech, args) {
     }
 }
 
-let handler = async (m, { EliteProTech, args }) => {
-    const target = await extractOwner(m, EliteProTech, args)
+let handler = async (m, { CbsScover, args }) => {
+    const target = await extractOwner(m, CbsScover, args)
     if (!target?.number) {
         return await m.reply(`Provide a number, mention a user, or reply to their message.\nUsage: ${global.prefix || ''}addowner 234xxxxxxxxxx`)
     }
     const { number, legacyLidNumber } = target
-    const botNumber = EliteProTech.decodeJid(EliteProTech.user.id).split('@')[0]
+    const botNumber = CbsScover.decodeJid(CbsScover.user.id).split('@')[0]
     if (number === botNumber) {
         return await m.reply('That number is already the primary owner.')
     }

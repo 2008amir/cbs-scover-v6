@@ -33,17 +33,17 @@ export function setGroupMetadataCache(id, metadata) {
     groupMetadataCache.set(id, { data: metadata, fetchedAt: Date.now() });
 }
 
-export async function getGroupMetadata(EliteProTech, id, forceRefresh = false) {
+export async function getGroupMetadata(CbsScover, id, forceRefresh = false) {
     const cached = groupMetadataCache.get(id);
     const isFresh = cached && (Date.now() - cached.fetchedAt) < GROUP_METADATA_TTL;
     if (!forceRefresh && isFresh) return cached.data;
-    const metadata = await EliteProTech.groupMetadata(id).catch(() => null);
+    const metadata = await CbsScover.groupMetadata(id).catch(() => null);
     if (metadata) setGroupMetadataCache(id, metadata);
     else if (cached) return cached.data;
     return metadata;
 }
 
-async function resolveLidCached(EliteProTech, lid) {
+async function resolveLidCached(CbsScover, lid) {
     if (!lid || !lid.endsWith('@lid')) return lid;
 
     const cached = lidCache.get(lid);
@@ -53,7 +53,7 @@ async function resolveLidCached(EliteProTech, lid) {
 
     let resolved = lid;
     try {
-        const pn = await EliteProTech.signalRepository?.lidMapping?.getPNForLID(lid);
+        const pn = await CbsScover.signalRepository?.lidMapping?.getPNForLID(lid);
         if (pn) resolved = pn;
     } catch {}
 
@@ -67,10 +67,10 @@ export function makeWASocket(connectionOptions, options = {}) {
 
 /* Same decorations as makeWASocket, but applied to an existing socket so V1 and
    V2 can share one connection/server. */
-export function decorateSocket(EliteProTech, options = {}) {
+export function decorateSocket(CbsScover, options = {}) {
 
 
-    EliteProTech.decodeJid = (jid) => {
+    CbsScover.decodeJid = (jid) => {
         if (!jid) return jid;
         if (/:\d+@/gi.test(jid)) {
             const decode = jidDecode(jid) || {};
@@ -78,13 +78,13 @@ export function decorateSocket(EliteProTech, options = {}) {
         } else return jid;
     };
 
-    EliteProTech.reply = (jid, text, m, options) => {
-        return EliteProTech.sendMessage(jid, { text: text }, { quoted: m, ...options });
+    CbsScover.reply = (jid, text, m, options) => {
+        return CbsScover.sendMessage(jid, { text: text }, { quoted: m, ...options });
     };
 
-    EliteProTech.resolveLidToJid = EliteProTech.resolveLidToJid || (async (lid) => resolveLidCached(EliteProTech, lid));
+    CbsScover.resolveLidToJid = CbsScover.resolveLidToJid || (async (lid) => resolveLidCached(CbsScover, lid));
 
-    EliteProTech.getFile = async (PATH, saveToFile = false) => {
+    CbsScover.getFile = async (PATH, saveToFile = false) => {
         let res, filename;
         const data = Buffer.isBuffer(PATH)
             ? PATH
@@ -118,8 +118,8 @@ export function decorateSocket(EliteProTech, options = {}) {
         };
     };
 
-    EliteProTech.sendFile = async (jid, path, filename = '', caption = '', quoted, ptt = false, options = {}) => {
-        let type = await EliteProTech.getFile(path, true);
+    CbsScover.sendFile = async (jid, path, filename = '', caption = '', quoted, ptt = false, options = {}) => {
+        let type = await CbsScover.getFile(path, true);
         let { res, data: file, filename: pathFile } = type;
         if (res && res.status !== 200) {
             try {
@@ -152,16 +152,16 @@ export function decorateSocket(EliteProTech, options = {}) {
         };
         let m;
         try {
-            m = await EliteProTech.sendMessage(jid, message, { ...opt, ...options });
+            m = await CbsScover.sendMessage(jid, message, { ...opt, ...options });
         } catch (e) {
             m = null;
         } finally {
-            if (!m) m = await EliteProTech.sendMessage(jid, { ...message, [mtype]: file }, { ...opt, ...options });
+            if (!m) m = await CbsScover.sendMessage(jid, { ...message, [mtype]: file }, { ...opt, ...options });
             return m;
         }
     };
 
-    EliteProTech.downloadM = async (m, type, saveToFile) => {
+    CbsScover.downloadM = async (m, type, saveToFile) => {
         let M = m.msg || m;
         let mtype = M.mtype ? M.mtype.replace(/Message/i, '') : type;
         let message = M.message ? M.message[mtype] : M;
@@ -181,7 +181,7 @@ export function decorateSocket(EliteProTech, options = {}) {
         return buffer;
     };
 
-    return EliteProTech;
+    return CbsScover;
 }
 
 function extractRealMessage(msg) {
@@ -212,7 +212,7 @@ function findQuoteContext(value, seen = new Set()) {
     return null;
 }
 
-export async function smsg(EliteProTech, m) {
+export async function smsg(CbsScover, m) {
     if (!m) return m;
     if (m.key) {
         m.id = m.key.id;
@@ -224,26 +224,26 @@ export async function smsg(EliteProTech, m) {
         m.isDM = !m.isGroup && !m.isNewsletter;
 
         const rawSender = m.key.participantAlt || m.key.participant || m.chat;
-        m.sender = EliteProTech.decodeJid(m.fromMe && EliteProTech.user.id || rawSender || '');
+        m.sender = CbsScover.decodeJid(m.fromMe && CbsScover.user.id || rawSender || '');
 
         let groupMetadata = null;
         if (m.isGroup) {
-            groupMetadata = await getGroupMetadata(EliteProTech, m.chat);
+            groupMetadata = await getGroupMetadata(CbsScover, m.chat);
         }
 
         if (m.chat.endsWith('@lid') && !m.isGroup) {
-            m.chat = EliteProTech.decodeJid(await EliteProTech.resolveLidToJid(m.chat));
+            m.chat = CbsScover.decodeJid(await CbsScover.resolveLidToJid(m.chat));
         }
 
         if (m.sender.endsWith('@lid')) {
             if (m.isGroup) {
                 const p = groupMetadata?.participants?.find(u => u.id === m.sender);
-                m.sender = EliteProTech.decodeJid(
-                    p?.phoneNumber || await EliteProTech.resolveLidToJid(m.sender)
+                m.sender = CbsScover.decodeJid(
+                    p?.phoneNumber || await CbsScover.resolveLidToJid(m.sender)
                 );
             } else {
-                m.sender = EliteProTech.decodeJid(
-                    await EliteProTech.resolveLidToJid(m.sender)
+                m.sender = CbsScover.decodeJid(
+                    await CbsScover.resolveLidToJid(m.sender)
                 );
             }
         }
@@ -251,17 +251,17 @@ export async function smsg(EliteProTech, m) {
         if (m.isGroup) {
             const participants = groupMetadata?.participants || [];
             const matchParticipant = (...candidates) => {
-                const ids = new Set(candidates.filter(Boolean).flatMap(id => [id, EliteProTech.decodeJid(id)]));
+                const ids = new Set(candidates.filter(Boolean).flatMap(id => [id, CbsScover.decodeJid(id)]));
                 return participants.find(p => [p.id, p.lid, p.phoneNumber]
                     .filter(Boolean)
-                    .some(id => ids.has(id) || ids.has(EliteProTech.decodeJid(id))));
+                    .some(id => ids.has(id) || ids.has(CbsScover.decodeJid(id))));
             };
 
             const senderParticipant = matchParticipant(m.sender, m.key.participant, m.key.participantAlt);
             m.isAdmin = senderParticipant?.admin === 'admin' || senderParticipant?.admin === 'superadmin';
 
-            const botId = EliteProTech.decodeJid(EliteProTech.user.id);
-            const botLid = EliteProTech.user.lid ? EliteProTech.decodeJid(EliteProTech.user.lid) : null;
+            const botId = CbsScover.decodeJid(CbsScover.user.id);
+            const botLid = CbsScover.user.lid ? CbsScover.decodeJid(CbsScover.user.lid) : null;
             const botParticipant = matchParticipant(botId, botLid);
             m.isBotAdmin = botParticipant?.admin === 'admin' || botParticipant?.admin === 'superadmin';
         } else {
@@ -276,7 +276,7 @@ export async function smsg(EliteProTech, m) {
         m.msg = messageContent[m.mtype];
         let text = m.msg.text || m.msg.caption || m.message.conversation || m.msg.contentText || m.msg.selectedDisplayText || m.msg.title || '';
         m.text = typeof m.msg === 'string' ? m.msg : text;
-        m.download = (saveToFile = false) => EliteProTech.downloadM(m, m.mtype.replace(/Message/i, ''), saveToFile);
+        m.download = (saveToFile = false) => CbsScover.downloadM(m, m.mtype.replace(/Message/i, ''), saveToFile);
         m.mimetype = m.msg?.mimetype;
 
         let mentioned = [];
@@ -285,7 +285,7 @@ export async function smsg(EliteProTech, m) {
         } else if (m.message?.[m.mtype]?.contextInfo?.mentionedJid) {
             mentioned = m.message[m.mtype].contextInfo.mentionedJid;
         }
-        m.mentionedJid = mentioned.map(jid => EliteProTech.decodeJid(jid));
+        m.mentionedJid = mentioned.map(jid => CbsScover.decodeJid(jid));
 
         const contexts = [m.msg?.contextInfo, m.msg?.messageContextInfo].filter(Boolean);
         const quoteContext = findQuoteContext(messageContent) || findQuoteContext(m.message);
@@ -329,27 +329,27 @@ export async function smsg(EliteProTech, m) {
                     quotedObj.mtype = type;
                     quotedObj.id = quoteContext?.stanzaId || null;
                     quotedObj.chat = quoteContext?.remoteJid || m.chat;
-                    quotedObj.sender = EliteProTech.decodeJid(quoteContext?.participant);
+                    quotedObj.sender = CbsScover.decodeJid(quoteContext?.participant);
                     quotedObj.participant = quoteContext?.participant || null;
 
                     if (quotedObj.sender?.endsWith('@lid')) {
                         if (m.isGroup) {
-                            const meta = await getGroupMetadata(EliteProTech, m.chat);
+                            const meta = await getGroupMetadata(CbsScover, m.chat);
                             const p = meta?.participants?.find(u => u.id === quotedObj.sender);
-                            quotedObj.sender = EliteProTech.decodeJid(
-                                p?.phoneNumber || await EliteProTech.resolveLidToJid(quotedObj.sender)
+                            quotedObj.sender = CbsScover.decodeJid(
+                                p?.phoneNumber || await CbsScover.resolveLidToJid(quotedObj.sender)
                             );
                         } else {
-                            quotedObj.sender = EliteProTech.decodeJid(
-                                await EliteProTech.resolveLidToJid(quotedObj.sender)
+                            quotedObj.sender = CbsScover.decodeJid(
+                                await CbsScover.resolveLidToJid(quotedObj.sender)
                             );
                         }
                     }
 
-                    quotedObj.fromMe = areJidsSameUser(quotedObj.sender, EliteProTech.decodeJid(EliteProTech.user.id));
+                    quotedObj.fromMe = areJidsSameUser(quotedObj.sender, CbsScover.decodeJid(CbsScover.user.id));
                     quotedObj.text = quotedObj.text || quotedObj.caption || '';
-                    quotedObj.reply = (text, chatId, options) => EliteProTech.reply(chatId ? chatId : m.chat, text, m.quoted, options);
-                    quotedObj.download = (saveToFile = false) => EliteProTech.downloadM(quotedObj, quotedObj.mtype.replace(/Message/i, ''), saveToFile);
+                    quotedObj.reply = (text, chatId, options) => CbsScover.reply(chatId ? chatId : m.chat, text, m.quoted, options);
+                    quotedObj.download = (saveToFile = false) => CbsScover.downloadM(quotedObj, quotedObj.mtype.replace(/Message/i, ''), saveToFile);
 
                     m.quoted = quotedObj;
                 }
@@ -358,25 +358,25 @@ export async function smsg(EliteProTech, m) {
             m.quoted = null;
         }
     }
-    m.reply = (text, chatId, options) => EliteProTech.reply(chatId ? chatId : m.chat, text, m, options);
+    m.reply = (text, chatId, options) => CbsScover.reply(chatId ? chatId : m.chat, text, m, options);
     return m;
 }
 
-export function bind(EliteProTech) {
-    if (!EliteProTech.chats) EliteProTech.chats = {};
-    if (!EliteProTech.contacts) EliteProTech.contacts = {};
+export function bind(CbsScover) {
+    if (!CbsScover.chats) CbsScover.chats = {};
+    if (!CbsScover.contacts) CbsScover.contacts = {};
 
     function updateNameToDb(contacts) {
         if (!contacts) return;
         try {
             contacts = contacts.contacts || contacts;
             for (const contact of contacts) {
-                const id = EliteProTech.decodeJid(contact.id);
+                const id = CbsScover.decodeJid(contact.id);
                 if (!id || id === 'status@broadcast') continue;
 
-                let chats = EliteProTech.chats[id];
-                if (!chats) chats = EliteProTech.chats[id] = { ...contact, id };
-                EliteProTech.chats[id] = {
+                let chats = CbsScover.chats[id];
+                if (!chats) chats = CbsScover.chats[id] = { ...contact, id };
+                CbsScover.chats[id] = {
                     ...chats,
                     ...contact,
                     ...(id.endsWith('@g.us') ?
@@ -384,44 +384,44 @@ export function bind(EliteProTech) {
                         { name: contact.notify || contact.name || chats.name || chats.notify || '' })
                 };
 
-                EliteProTech.contacts[id] = {
-                    ...EliteProTech.contacts[id],
+                CbsScover.contacts[id] = {
+                    ...CbsScover.contacts[id],
                     ...contact
                 };
             }
         } catch (e) {}
     }
 
-    EliteProTech.ev.on('contacts.upsert', updateNameToDb);
-    EliteProTech.ev.on('contacts.update', updateNameToDb);
-    EliteProTech.ev.on('contacts.set', updateNameToDb);
-    EliteProTech.ev.on('groups.update', updateNameToDb);
+    CbsScover.ev.on('contacts.upsert', updateNameToDb);
+    CbsScover.ev.on('contacts.update', updateNameToDb);
+    CbsScover.ev.on('contacts.set', updateNameToDb);
+    CbsScover.ev.on('groups.update', updateNameToDb);
 
-    EliteProTech.ev.on('messages.reaction', (reactions) => {
+    CbsScover.ev.on('messages.reaction', (reactions) => {
         try {
             for (const reaction of reactions) {
                 if (reaction.key?.participant) {
-                    const jid = EliteProTech.decodeJid(reaction.key.participant);
-                    if (jid && !EliteProTech.contacts[jid]) {
-                        EliteProTech.contacts[jid] = { id: jid };
+                    const jid = CbsScover.decodeJid(reaction.key.participant);
+                    if (jid && !CbsScover.contacts[jid]) {
+                        CbsScover.contacts[jid] = { id: jid };
                     }
                 }
             }
         } catch (e) {}
     });
 
-    EliteProTech.ev.on('chats.set', async ({ chats }) => {
+    CbsScover.ev.on('chats.set', async ({ chats }) => {
         try {
             for (let { id, name, readOnly } of chats) {
-                id = EliteProTech.decodeJid(id);
+                id = CbsScover.decodeJid(id);
                 if (!id || id === 'status@broadcast') continue;
                 const isGroup = id.endsWith('@g.us');
-                let localChats = EliteProTech.chats[id];
-                if (!localChats) localChats = EliteProTech.chats[id] = { id };
+                let localChats = CbsScover.chats[id];
+                if (!localChats) localChats = CbsScover.chats[id] = { id };
                 localChats.isChats = !readOnly;
                 if (name) localChats[isGroup ? 'subject' : 'name'] = name;
                 if (isGroup) {
-                    const metadata = await getGroupMetadata(EliteProTech, id, true);
+                    const metadata = await getGroupMetadata(CbsScover, id, true);
                     if (name || metadata?.subject) localChats.subject = name || metadata.subject;
                     if (!metadata) continue;
                     localChats.metadata = metadata;
@@ -430,43 +430,43 @@ export function bind(EliteProTech) {
         } catch (e) {}
     });
 
-    EliteProTech.ev.on('group-participants.update', async function updateParticipantsToDb({ id, participants, action }) {
+    CbsScover.ev.on('group-participants.update', async function updateParticipantsToDb({ id, participants, action }) {
         if (!id) return;
-        id = EliteProTech.decodeJid(id);
+        id = CbsScover.decodeJid(id);
         if (id === 'status@broadcast') return;
-        if (!(id in EliteProTech.chats)) EliteProTech.chats[id] = { id };
-        let localChats = EliteProTech.chats[id];
+        if (!(id in CbsScover.chats)) CbsScover.chats[id] = { id };
+        let localChats = CbsScover.chats[id];
         localChats.isChats = true;
-        const groupMetadata = await getGroupMetadata(EliteProTech, id, true);
+        const groupMetadata = await getGroupMetadata(CbsScover, id, true);
         if (!groupMetadata) return;
         localChats.subject = groupMetadata.subject;
         localChats.metadata = groupMetadata;
     });
 
-    if (EliteProTech.user) {
-        EliteProTech.contacts[EliteProTech.user.id] = {
-            id: EliteProTech.user.id,
-            name: EliteProTech.user.name,
-            notify: EliteProTech.user.name
+    if (CbsScover.user) {
+        CbsScover.contacts[CbsScover.user.id] = {
+            id: CbsScover.user.id,
+            name: CbsScover.user.name,
+            notify: CbsScover.user.name
         };
     }
 }
 
-export async function sendNotification(EliteProTech, m, title, body) {
+export async function sendNotification(CbsScover, m, title, body) {
     const textMessage = title ? `*${title}*\n\n${body}` : body
     const quotedMessage = {
         key: {
             remoteJid: 'status@broadcast',
             fromMe: false,
-            id: 'EliteProTech',
+            id: 'CBS-SCOVER',
             participant: '13135550002@s.whatsapp.net'
         },
         message: {
             locationMessage: {
                 degreesLatitude: -6.200000,
                 degreesLongitude: 106.816666,
-                name: 'ELITE-PRO-V2',
-                address: 'EliteProTech',
+                name: 'CBS-SCOVER-V2',
+                address: 'CBS-SCOVER',
                 jpegThumbnail: null
             }
         }
@@ -475,11 +475,11 @@ export async function sendNotification(EliteProTech, m, title, body) {
         m.chat,
         { text: textMessage },
         {
-            userJid: EliteProTech.user.id,
+            userJid: CbsScover.user.id,
             quoted: quotedMessage
         }
     )
-    await EliteProTech.relayMessage(msg.key.remoteJid, msg.message, {
+    await CbsScover.relayMessage(msg.key.remoteJid, msg.message, {
         messageId: msg.key.id
     })
 }

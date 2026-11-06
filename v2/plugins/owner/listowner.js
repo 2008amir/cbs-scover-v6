@@ -11,9 +11,9 @@ function readOwners() {
     }
 }
 
-let handler = async (m, { EliteProTech }) => {
+let handler = async (m, { CbsScover }) => {
     const owners = readOwners()
-    const botNumber = EliteProTech.decodeJid(EliteProTech.user.id).split('@')[0]
+    const botNumber = CbsScover.decodeJid(CbsScover.user.id).split('@')[0]
 
     let text = `*Owner List*\n\n`
     text += `➤ ${botNumber} (primary)\n`

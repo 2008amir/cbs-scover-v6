@@ -16,27 +16,27 @@ function writeOwners(owners) {
     fs.writeFileSync(OWNER_DB_PATH, JSON.stringify(owners, null, 2))
 }
 
-async function extractNumber(m, EliteProTech, args) {
+async function extractNumber(m, CbsScover, args) {
     let jid = m.mentionedJid?.[0] || m.quoted?.sender
     if (!jid) {
         const value = args.find(arg => !arg.startsWith('@'))
         return value?.replace(/[^0-9]/g, '') || null
     }
     if (jid.endsWith('@lid') && m.isGroup) {
-        const metadata = await getGroupMetadata(EliteProTech, m.chat, true)
+        const metadata = await getGroupMetadata(CbsScover, m.chat, true)
         const participant = metadata?.participants?.find(p => p.id === jid || p.lid === jid)
         jid = participant?.phoneNumber || jid
     }
-    if (jid.endsWith('@lid')) jid = await EliteProTech.resolveLidToJid(jid)
+    if (jid.endsWith('@lid')) jid = await CbsScover.resolveLidToJid(jid)
     return jid?.endsWith('@lid') ? null : jid?.split('@')[0].replace(/\D/g, '')
 }
 
-let handler = async (m, { EliteProTech, args }) => {
-    const number = await extractNumber(m, EliteProTech, args)
+let handler = async (m, { CbsScover, args }) => {
+    const number = await extractNumber(m, CbsScover, args)
     if (!number) {
         return await m.reply(`Provide a number, mention a user, or reply to their message.\nUsage: ${global.prefix || ''}delowner 234xxxxxxxxxx`)
     }
-    const botNumber = EliteProTech.decodeJid(EliteProTech.user.id).split('@')[0]
+    const botNumber = CbsScover.decodeJid(CbsScover.user.id).split('@')[0]
     if (number === botNumber) {
         return await m.reply('The primary owner (this bot\'s own number) can\'t be removed this way.')
     }

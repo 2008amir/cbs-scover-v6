@@ -24,7 +24,7 @@ const getRepo = () => {
     const match = repo.match(/^https?:\/\/github\.com\/([^/]+)\/([^/]+)$/i)
 
     if (!match) {
-        throw new Error('Invalid global.repo. Use https://github.com/EliteProTech/ELITE-PRO-V2')
+        throw new Error('Invalid global.repo. Use https://github.com/2008amir/cbs-scover-v6')
     }
 
     return {
