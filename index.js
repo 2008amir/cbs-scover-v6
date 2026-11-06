@@ -1428,7 +1428,7 @@ global.chatbotCommand = async function chatbotCommand(EliteProTech, mek, body) {
 
     const sender = (mek.key.fromMe ? (EliteProTech.user?.id || '') : (mek.key.participant || mek.key.remoteJid)) || '';
     const senderNum = String(sender).replace(/\D/g, '');
-    const isOwner = mek.key.fromMe || senderNum.startsWith(String(global.ownernumber || '').replace(/\D/g, ''));
+    const isOwner = mek.key.fromMe || await require('./lib/owners').isOwner(EliteProTech, sender);
     const from = mek.key.remoteJid;
 
     // Bare ".chatbot-love-start" (no arguments) -> status + total active + commands.

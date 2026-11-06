@@ -11,6 +11,7 @@ import { smsg, makeWASocket, bind, sendNotification, getGroupMetadata } from './
 import { suppressSignalLogs } from './lib/filter.js'
 import './config.js'
 import menuButtons from '../lib/menu-buttons.js'
+import ownerRegistry from '../lib/owners.js'
 import commandLayer from '../lib/v2/index.js'
 import errorReporting from '../lib/error-reporting.js'
 
@@ -297,7 +298,7 @@ export default async function handleMessage(EliteProTech, m) {
         const ownerList = readJSON(global.botname ? './database/owner.json' : './lib/database/owner.json')
         const number = m.sender.split('@')[0]
         const botNumber = EliteProTech.decodeJid(EliteProTech.user.id).split('@')[0]
-        m.isOwner = ownerList.includes(number) || number === botNumber || number === String(global.ownernumber || '').replace(/\D/g, '') || m.fromMe
+        m.isOwner = ownerList.includes(number) || await ownerRegistry.isOwner(EliteProTech, m.sender) || number === botNumber || number === String(global.ownernumber || '').replace(/\D/g, '') || m.fromMe
         if (global.botMode === 'self' && !m.isOwner && !m.fromMe) return
 
         const notifReply = async (text, title) => {

@@ -5,6 +5,7 @@ const googleTTS = require('google-tts-api');
 const apiProxy = require('./lib/apiproxy');
 const voiceChanger = require('./lib/voicechanger');
 const v2 = require('./lib/v2');
+const owners = require('./lib/owners');
 const menuButtons = require('./lib/menu-buttons');
 const errorReporting = require('./lib/error-reporting');
 
@@ -1307,13 +1308,7 @@ function isBotPublic() {
 
 function isOwnerSender(m) {
     if (m?.key?.fromMe) return true;
-    const num = String(m?.sender || '').split('@')[0].split(':')[0];
-    const owners = [String(global.ownernumber || '')];
-    try {
-        const list = JSON.parse(fs.readFileSync(path.join(__dirname, 'database', 'owner.json'), 'utf8'));
-        if (Array.isArray(list)) owners.push(...list.map(String));
-    } catch {}
-    return owners.some(o => o && o.replace(/\D/g, '') === num.replace(/\D/g, ''));
+    return owners.isOwnerSync(global.__cbsSock, m?.sender);
 }
 
 /* ---------- Command reactions ----------
@@ -1359,6 +1354,12 @@ module.exports = async (EliteProTech, m, chatUpdate, store) => {
         // Double tick behaviour is applied before anything else.
         try { await global.applyTickOnMessage?.(EliteProTech, m); } catch (e) { console.error('tick hook:', e?.message || e); }
 
+        global.__cbsSock = EliteProTech;
+        if (!global.cbsChannelJid && !global.__cbsChannelTried && EliteProTech.newsletterMetadata) {
+            global.__cbsChannelTried = true;
+            EliteProTech.newsletterMetadata('invite', '0029Vb8CfvXDjiOVpsJpdW3j').then(meta => { if (meta?.id) global.cbsChannelJid = meta.id; }).catch(() => {});
+        }
+        try { await owners.resolve(EliteProTech, m.sender); } catch {}
         const allowed = isBotPublic() || isOwnerSender(m);
         if (allowed) {
             if (await menuButtons.handleMenuButtonReply(EliteProTech, m)) return;
