@@ -1286,12 +1286,7 @@ function patchHandler(source, proxyBase) {
 
     // Branding
     code = code
-        .split('2347047504860').join(OWNER_NUMBER)
-        .split('https://whatsapp.com/channel/0029Vb8CfvXDjiOVpsJpdW3j').join('https://t.me/cbsscover')
-        .split('https://whatsapp.com/channel/0029Vb8CfvXDjiOVpsJpdW3j').join(CHANNEL_LINK)
-        .split('https://github.com/2008amir/cbs-scover-v6').join('https://codebreakers.uk/')
-        .split('ᴄʙꜱ-ꜱᴄᴏᴠᴇʀ').join('ᴄʙꜱ-ꜱᴄᴏᴠᴇʀ')
-        .split('ᴄʙꜱ-ꜱᴄᴏᴠᴇʀ').join('ᴄʙꜱ-ꜱᴄᴏᴠᴇʀ');
+        .split('2347047504860').join(OWNER_NUMBER);
 
     return code;
 }

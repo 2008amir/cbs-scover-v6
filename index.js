@@ -2812,12 +2812,7 @@ async function legacyRestoreMessage(CbsScover, from, note, msg, quoted, mentions
         .split('CBS-SCOVER, an intelligent assistant developed by Chinedu (cyrilix-xmd)')
         .join('CBS-SCOVER, an intelligent assistant developed by codebreakers')
         .split('Owner: Chinedu-md').join('Owner: codebreakers')
-        .split('2347047504860').join(OWNER_NUMBER)
-        .split('https://whatsapp.com/channel/0029Vb8CfvXDjiOVpsJpdW3j').join('https://t.me/cbsscover')
-        .split('https://github.com/2008amir/cbs-scover-v6').join('https://codebreakers.uk')
-        .split('https://whatsapp.com/channel/0029Vb8CfvXDjiOVpsJpdW3j').join(CHANNEL_LINK)
-        .split('https://github.com/2008amir/cbs-scover-v6').join(GROUP_LINK)
-        .split('./database/cbs-scover.jpg').join('./database/cbs-scover.jpg');
+        .split('2347047504860').join(OWNER_NUMBER);
 
     /* ---- Anti-delete memory: 24-hour store, own messages included ---- */
 
