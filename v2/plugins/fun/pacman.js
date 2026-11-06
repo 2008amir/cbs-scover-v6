@@ -443,9 +443,9 @@ const html = `<style>
 })();
 </script>`
 
-let handler = async (m, { EliteProTech }) => {
+let handler = async (m, { CbsScover }) => {
     try {
-        await sendRichHtml(EliteProTech, m.chat, { id: 'elite-pacman', title: 'ELITE-PRO-V2 • PAC-MAN', html, source: 'eliteprotech' })
+        await sendRichHtml(CbsScover, m.chat, { id: 'elite-pacman', title: 'CBS-SCOVER-V2 • PAC-MAN', html, source: 'CBS-SCOVER' })
     } catch (error) {
         await m.reply(`Unable to send Pac-Man: ${error.message || String(error)}`)
     }

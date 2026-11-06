@@ -1,8 +1,8 @@
 import fs from 'fs'
-import { ImgBB, uploadToEliteProTechUrl, uploadToEliteTempUrl } from '../../lib/uploader.js'
+import { ImgBB, uploadToCbsScoverUrl, uploadToEliteTempUrl } from '../../lib/uploader.js'
 
 const uploaders = {
-    'eliteprotech-url': uploadToEliteProTechUrl,
+    'cbs-scover-url': uploadToCbsScoverUrl,
     imgbb: ImgBB,
     tempurl: uploadToEliteTempUrl
 }
@@ -12,7 +12,7 @@ let handler = async (m, { args }) => {
     const upload = uploaders[service]
 
     if (!upload) {
-        return await m.reply(`Usage: ${global.prefix || ''}url eliteprotech-url | imgbb | tempurl\nReply to an image, video, audio, document, or sticker.`)
+        return await m.reply(`Usage: ${global.prefix || ''}url cbs-scover-url | imgbb | tempurl\nReply to an image, video, audio, document, or sticker.`)
     }
 
     const target = m.quoted || (m.mtype === 'imageMessage' || m.mtype === 'videoMessage' || m.mtype === 'audioMessage' || m.mtype === 'documentMessage' || m.mtype === 'stickerMessage' ? m : null)

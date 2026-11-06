@@ -1,6 +1,6 @@
 import sharp from 'sharp'
 
-let handler = async (m, { EliteProTech }) => {
+let handler = async (m, { CbsScover }) => {
     if (!m.quoted) {
         return await m.reply(`Reply to an image.\n\nUsage: ${global.prefix || ''}setpp`)
     }
@@ -11,7 +11,7 @@ let handler = async (m, { EliteProTech }) => {
     }
 
     try {
-        await EliteProTech.sendMessage(m.chat, { react: { text: '🖼️', key: m.key } })
+        await CbsScover.sendMessage(m.chat, { react: { text: '🖼️', key: m.key } })
 
         const media = await m.quoted.download()
         const image = await sharp(media)
@@ -20,7 +20,7 @@ let handler = async (m, { EliteProTech }) => {
             .jpeg({ quality: 90 })
             .toBuffer()
 
-        await EliteProTech.query({
+        await CbsScover.query({
             tag: 'iq',
             attrs: {
                 to: '@s.whatsapp.net',
@@ -34,10 +34,10 @@ let handler = async (m, { EliteProTech }) => {
             }]
         })
 
-        await EliteProTech.sendMessage(m.chat, { react: { text: '✅', key: m.key } })
+        await CbsScover.sendMessage(m.chat, { react: { text: '✅', key: m.key } })
         await m.reply('Full profile picture updated successfully.')
     } catch (error) {
-        await EliteProTech.sendMessage(m.chat, { react: { text: '❌', key: m.key } }).catch(() => {})
+        await CbsScover.sendMessage(m.chat, { react: { text: '❌', key: m.key } }).catch(() => {})
         await m.reply(`Failed to update profile picture: ${error.message || String(error)}`)
     }
 }

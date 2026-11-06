@@ -148,9 +148,9 @@ show('Alien Killer','Shoot every alien before they reach the bottom.','Start');
 loop();
 </script>`
 
-let handler = async (m, { EliteProTech }) => {
+let handler = async (m, { CbsScover }) => {
     try {
-        await sendRichHtml(EliteProTech, m.chat, { id: 'elite-alienkiller', title: 'ELITE-PRO-V2 • ALIEN KILLER', html, source: 'eliteprotech' })
+        await sendRichHtml(CbsScover, m.chat, { id: 'elite-alienkiller', title: 'CBS-SCOVER-V2 • ALIEN KILLER', html, source: 'CBS-SCOVER' })
     } catch (error) {
         await m.reply(`Unable to send Alien Killer: ${error.message || String(error)}`)
     }

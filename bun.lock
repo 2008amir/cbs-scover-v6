@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "ELITE-PRO-V1",
+      "name": "cbs-scover-v1",
       "dependencies": {
         "@ffmpeg-installer/ffmpeg": "latest",
         "@gradio/client": "^2.5.1",

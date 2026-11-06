@@ -4,7 +4,7 @@ import path from 'path'
 import os from 'os'
 import crypto from 'crypto'
 
-const TMP_DIR = path.join(os.tmpdir(), 'elitepro-convert')
+const TMP_DIR = path.join(os.tmpdir(), 'cbs-scover-convert')
 if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true })
 
 function tmpFile(ext) {

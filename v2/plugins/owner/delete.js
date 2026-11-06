@@ -8,7 +8,7 @@ function quotedKey(m) {
     }
 }
 
-let handler = async (m, { EliteProTech }) => {
+let handler = async (m, { CbsScover }) => {
     const key = quotedKey(m)
     if (!key) return await m.reply(`Reply to a message first.\n\nUsage: ${global.prefix || ''}delete`)
 
@@ -19,7 +19,7 @@ let handler = async (m, { EliteProTech }) => {
     }
 
     try {
-        await EliteProTech.sendMessage(m.chat, { delete: key })
+        await CbsScover.sendMessage(m.chat, { delete: key })
     } catch (error) {
         await m.reply(`Unable to delete that message: ${error.message || String(error)}`)
     }

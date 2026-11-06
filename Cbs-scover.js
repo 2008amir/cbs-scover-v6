@@ -133,7 +133,7 @@ function extractBody(m) {
     );
 }
 
-async function handleAiVoice(EliteProTech, m) {
+async function handleAiVoice(CbsScover, m) {
     const prefix = global.prefix ?? '.';
     const body = extractBody(m);
     if (!body || !body.startsWith(prefix) || body[prefix.length] === ' ') return false;
@@ -145,7 +145,7 @@ async function handleAiVoice(EliteProTech, m) {
     const flags = [match[1], match[2]].filter(Boolean);
     let hausa = flags.includes('hausa');
     const gender = flags.includes('female') ? 'female' : 'male';
-    const reply = (text) => errorReporting.replyText(EliteProTech, m, text);
+    const reply = (text) => errorReporting.replyText(CbsScover, m, text);
 
     let text = body.slice(prefix.length + command.length).trim();
     if (!text && m?.quoted?.text) text = String(m.quoted.text).trim();
@@ -171,14 +171,14 @@ async function handleAiVoice(EliteProTech, m) {
     let recording = true;
     const keepRecording = async () => {
         while (recording) {
-            await EliteProTech.sendPresenceUpdate('recording', m.chat).catch(() => {});
+            await CbsScover.sendPresenceUpdate('recording', m.chat).catch(() => {});
             await new Promise(r => setTimeout(r, 3000));
         }
     };
 
     try {
-        await EliteProTech.sendPresenceUpdate('available', m.chat).catch(() => {});
-        await EliteProTech.sendPresenceUpdate('recording', m.chat).catch(() => {});
+        await CbsScover.sendPresenceUpdate('available', m.chat).catch(() => {});
+        await CbsScover.sendPresenceUpdate('recording', m.chat).catch(() => {});
         keepRecording();
 
         const audio = await makeVoice(text, gender, hausa);
@@ -194,13 +194,13 @@ async function handleAiVoice(EliteProTech, m) {
             console.error('PTT conversion failed, sending mp3:', convErr?.message || convErr);
         }
 
-        await EliteProTech.sendMessage(m.chat, payload, { quoted: m });
+        await CbsScover.sendMessage(m.chat, payload, { quoted: m });
         recording = false;
-        await EliteProTech.sendPresenceUpdate('paused', m.chat).catch(() => {});
+        await CbsScover.sendPresenceUpdate('paused', m.chat).catch(() => {});
     } catch (err) {
         recording = false;
-        await EliteProTech.sendPresenceUpdate('paused', m.chat).catch(() => {});
-        await errorReporting.reportError(EliteProTech, m, err, 'AI voice');
+        await CbsScover.sendPresenceUpdate('paused', m.chat).catch(() => {});
+        await errorReporting.reportError(CbsScover, m, err, 'AI voice');
     }
 
 
@@ -237,8 +237,8 @@ function writeJson(file, data) {
 
 const USERNAME_FILE = path.join(__dirname, 'database', 'username.json');
 
-function ownerJid(EliteProTech) {
-    const me = EliteProTech?.user?.id || '';
+function ownerJid(CbsScover) {
+    const me = CbsScover?.user?.id || '';
     const num = String(me).split(':')[0].split('@')[0];
     return `${num || OWNER_NUMBER}@s.whatsapp.net`;
 }
@@ -287,7 +287,7 @@ function unwrap(message) {
     return clean;
 }
 
-async function downloadQuoted(EliteProTech, q) {
+async function downloadQuoted(CbsScover, q) {
     const baileys = require('baileys');
     const { downloadMediaMessage, downloadContentFromMessage } = baileys;
     const message = unwrap(q.message);
@@ -299,8 +299,8 @@ async function downloadQuoted(EliteProTech, q) {
         documentMessage: 'document'
     };
     const attempts = [
-        () => downloadMediaMessage({ key: q.key, message }, 'buffer', {}, { reuploadRequest: EliteProTech.updateMediaMessage }),
-        () => downloadMediaMessage({ key: q.key, message: q.message }, 'buffer', {}, { reuploadRequest: EliteProTech.updateMediaMessage }),
+        () => downloadMediaMessage({ key: q.key, message }, 'buffer', {}, { reuploadRequest: CbsScover.updateMediaMessage }),
+        () => downloadMediaMessage({ key: q.key, message: q.message }, 'buffer', {}, { reuploadRequest: CbsScover.updateMediaMessage }),
         async () => {
             const type = Object.keys(TYPES).find(k => message[k]);
             if (!type) throw new Error('no media node');
@@ -380,7 +380,7 @@ function resolveViewOnce(q) {
     return hit ? { message: hit.message, key: hit.key } : q;
 }
 
-async function sendViewOnceCopy(EliteProTech, q, target, m) {
+async function sendViewOnceCopy(CbsScover, q, target, m) {
     q = resolveViewOnce(q);
     const message = unwrap(q.message);
     const from = String(q.key.participant || m.chat || '').split('@')[0];
@@ -388,24 +388,24 @@ async function sendViewOnceCopy(EliteProTech, q, target, m) {
     const options = { mentions: [q.key.participant || m.chat].filter(Boolean) };
 
     if (message.imageMessage) {
-        const buffer = await downloadQuoted(EliteProTech, q);
-        return EliteProTech.sendMessage(target, { image: buffer, caption: `${header}\n\n${message.imageMessage.caption || ''}`.trim(), ...options });
+        const buffer = await downloadQuoted(CbsScover, q);
+        return CbsScover.sendMessage(target, { image: buffer, caption: `${header}\n\n${message.imageMessage.caption || ''}`.trim(), ...options });
     }
     if (message.videoMessage) {
-        const buffer = await downloadQuoted(EliteProTech, q);
-        return EliteProTech.sendMessage(target, { video: buffer, caption: `${header}\n\n${message.videoMessage.caption || ''}`.trim(), ...options });
+        const buffer = await downloadQuoted(CbsScover, q);
+        return CbsScover.sendMessage(target, { video: buffer, caption: `${header}\n\n${message.videoMessage.caption || ''}`.trim(), ...options });
     }
     if (message.audioMessage) {
-        const buffer = await downloadQuoted(EliteProTech, q);
-        await EliteProTech.sendMessage(target, { text: header, ...options });
-        return EliteProTech.sendMessage(target, {
+        const buffer = await downloadQuoted(CbsScover, q);
+        await CbsScover.sendMessage(target, { text: header, ...options });
+        return CbsScover.sendMessage(target, {
             audio: buffer,
             ptt: !!message.audioMessage.ptt,
             mimetype: message.audioMessage.mimetype || 'audio/mpeg'
         });
     }
     const text = message.conversation || message.extendedTextMessage?.text;
-    if (text) return EliteProTech.sendMessage(target, { text: `${header}\n\n${text}`, ...options });
+    if (text) return CbsScover.sendMessage(target, { text: `${header}\n\n${text}`, ...options });
     throw new Error('unsupported view once content');
 }
 
@@ -689,7 +689,7 @@ function helpSectionText(section, items, prefix) {
     return `┏━━━━━━━━━━━━━━━❍\n┗┳❍ 「 *${section}* 」❍\n┏┻━━━━━━━━━━━━━━❍\n${lines}\n┗━━━━━━━━━━━━━━━❍`;
 }
 
-async function handleExtraCommands(EliteProTech, m) {
+async function handleExtraCommands(CbsScover, m) {
 
 
     const prefix = global.prefix ?? '.';
@@ -698,9 +698,9 @@ async function handleExtraCommands(EliteProTech, m) {
 
     /* V2 shell keeps its own "$" prefix. */
     if (body.startsWith('$')) {
-        return await v2.handleShell(EliteProTech, m, {
+        return await v2.handleShell(CbsScover, m, {
             body,
-            reply: (text) => EliteProTech.sendMessage(m.chat, { text }, { quoted: m }),
+            reply: (text) => CbsScover.sendMessage(m.chat, { text }, { quoted: m }),
             isOwner: isOwnerSender(m)
         });
     }
@@ -711,14 +711,14 @@ async function handleExtraCommands(EliteProTech, m) {
     const command = (rest.split(/\s+/)[0] || '').toLowerCase();
     const args = rest.slice(command.length).replace(/^[^\S\n]+/, '').replace(/^\n/, '').trim();
 
-    const reply = (text) => errorReporting.replyText(EliteProTech, m, text);
+    const reply = (text) => errorReporting.replyText(CbsScover, m, text);
     const isGroupChat = String(m.chat || '').endsWith('@g.us');
 
     /* ---------- VOICE CHANGER (Seed-VC speech-to-speech) ---------- */
-    if (await voiceChanger.handleCommands(EliteProTech, m, { command, args, reply, prefix, isOwner: isOwnerSender(m) })) return true;
+    if (await voiceChanger.handleCommands(CbsScover, m, { command, args, reply, prefix, isOwner: isOwnerSender(m) })) return true;
 
     /* ---------- CBS-SCOVER-V2 commands ---------- */
-    if (await v2.handleCommands(EliteProTech, m, { command, args, reply, prefix, isOwner: isOwnerSender(m) })) return true;
+    if (await v2.handleCommands(CbsScover, m, { command, args, reply, prefix, isOwner: isOwnerSender(m) })) return true;
 
 
     /* ---------- HELP ---------- */
@@ -760,7 +760,7 @@ async function handleExtraCommands(EliteProTech, m) {
             let done = false;
             for (let attempt = 0; attempt < 3 && !done; attempt++) {
                 try {
-                    await EliteProTech.groupParticipantsUpdate(m.chat, [jid], 'promote');
+                    await CbsScover.groupParticipantsUpdate(m.chat, [jid], 'promote');
                     done = true;
                 } catch (err) {
                     if (attempt === 2) console.error('promote error:', err?.message || err);
@@ -775,7 +775,7 @@ async function handleExtraCommands(EliteProTech, m) {
             text += `\n❌ WhatsApp refused the promotion for:\n${failed.map(j => '@' + j.split('@')[0]).join('\n')}\n\n` +
                 `Promotion is enforced by WhatsApp's servers — the bot itself must be a group admin. No client-side bypass exists.`;
         }
-        await EliteProTech.sendMessage(m.chat, { text: text.trim(), mentions: targets }, { quoted: m });
+        await CbsScover.sendMessage(m.chat, { text: text.trim(), mentions: targets }, { quoted: m });
         return true;
     }
 
@@ -808,14 +808,14 @@ async function handleExtraCommands(EliteProTech, m) {
             return true;
         }
         try {
-            const raw = await downloadQuoted(EliteProTech, source);
+            const raw = await downloadQuoted(CbsScover, source);
             if (command === 'groupfullpp') {
                 const padded = await padToSquare(raw);
-                await EliteProTech.updateProfilePicture(m.chat, padded);
+                await CbsScover.updateProfilePicture(m.chat, padded);
                 await reply('✅ Group profile picture updated — full image, nothing cropped out.');
             } else {
                 const cropped = await cropSquare(raw);
-                await EliteProTech.updateProfilePicture(m.chat, cropped);
+                await CbsScover.updateProfilePicture(m.chat, cropped);
                 await reply('✅ Group profile picture updated (cropped).');
             }
         } catch (err) {
@@ -838,9 +838,9 @@ async function handleExtraCommands(EliteProTech, m) {
         let lastErr;
         for (let attempt = 0; attempt < 3; attempt++) {
             try {
-                const target = toDm ? ownerJid(EliteProTech) : m.chat;
-                await sendViewOnceCopy(EliteProTech, q, target, m);
-                if (toDm) await EliteProTech.sendMessage(m.chat, { text: '✅ View-once media recovered and sent to your DM.' }, { quoted: m });
+                const target = toDm ? ownerJid(CbsScover) : m.chat;
+                await sendViewOnceCopy(CbsScover, q, target, m);
+                if (toDm) await CbsScover.sendMessage(m.chat, { text: '✅ View-once media recovered and sent to your DM.' }, { quoted: m });
                 return true;
             } catch (err) {
                 lastErr = err;
@@ -1164,7 +1164,7 @@ async function handleExtraCommands(EliteProTech, m) {
     /* ---------- DOUBLE TICK ---------- */
     if (command === 'doubletick') {
         if (typeof global.handleTickCommand === 'function') {
-            await global.handleTickCommand(EliteProTech, m, args, 'double', prefix);
+            await global.handleTickCommand(CbsScover, m, args, 'double', prefix);
         } else {
             await reply('⚠️ Tick control is not loaded yet, try again in a moment.');
         }
@@ -1174,7 +1174,7 @@ async function handleExtraCommands(EliteProTech, m) {
     /* ---------- DP DOWNLOAD ---------- */
     if (command === 'dpdownload' || command === 'dpdl') {
         if (typeof global.handleDpDownload === 'function') {
-            await global.handleDpDownload(EliteProTech, m, args, prefix);
+            await global.handleDpDownload(CbsScover, m, args, prefix);
         } else {
             await reply('⚠️ Not loaded yet, try again in a moment.');
         }
@@ -1184,7 +1184,7 @@ async function handleExtraCommands(EliteProTech, m) {
     /* ---------- CHAT ID ---------- */
     if (command === 'chat-id' || command === 'chatid') {
         if (typeof global.handleChatId === 'function') {
-            await global.handleChatId(EliteProTech, m, args, prefix);
+            await global.handleChatId(CbsScover, m, args, prefix);
         } else {
             await reply('⚠️ Not loaded yet, try again in a moment.');
         }
@@ -1209,7 +1209,7 @@ function patchHandler(source, proxyBase) {
     }
 
     // Bot image was renamed during rebranding.
-    code = code.split('elitepropic.jpg').join('cbs-scover.jpg');
+    code = code.split('cbs-scover.jpg').join('cbs-scover.jpg');
 
 
     // Panel is disabled: never treated as a command, and gone from the menu.
@@ -1220,7 +1220,7 @@ function patchHandler(source, proxyBase) {
     const welcomeCase = "case 'welcome': {";
     if (code.includes(welcomeCase)) {
         code = code.split(welcomeCase).join(
-            "case 'welcome': {\n    await global.handleWelcomeCommand(EliteProTech, m, args, prefix)\n}\nbreak\ncase '__welcome_legacy__': {"
+            "case 'welcome': {\n    await global.handleWelcomeCommand(CbsScover, m, args, prefix)\n}\nbreak\ncase '__welcome_legacy__': {"
         );
     } else {
         console.log('⚠️ Welcome command patch target not found.');
@@ -1228,7 +1228,7 @@ function patchHandler(source, proxyBase) {
 
 
     // Menu title.
-    code = code.split('┃ *ᴇʟɪᴛᴇ-ᴘʀᴏ-ᴠɪ ʙᴏᴛ ᴍᴇɴᴜ*').join('┃ *CBS-SCOVER*');
+    code = code.split('┃ *ᴄʙꜱ-ꜱᴄᴏᴠᴇʀ-ᴠɪ ʙᴏᴛ ᴍᴇɴᴜ*').join('┃ *CBS-SCOVER*');
 
     // Remove any leftover plain group link line in the menu body.
     code = code.split(`\n┣❍ *ɢʀᴏᴜᴘ:* ${GROUP_LINK}`).join('');
@@ -1259,18 +1259,18 @@ function patchHandler(source, proxyBase) {
     }
 
     // Route the menu through our own sender (no buttons, plain image + list).
-    const menuSend = `await EliteProTech.sendMessage(m.chat, {
-  image: elitepropic,
+    const menuSend = `await CbsScover.sendMessage(m.chat, {
+  image: cbsScoverPic,
   caption: elitemenuoh
 }, { quoted: m });`;
-    const menuCall = 'await global.sendMenu(EliteProTech, m, elitepropic, elitemenuoh);';
+    const menuCall = 'await global.sendMenu(CbsScover, m, cbsScoverPic, elitemenuoh);';
     if (code.includes(menuSend)) {
         code = code.split(menuSend).join(menuCall);
     } else {
         // Whitespace/formatting in the remote source can change; match loosely
         // so the menu is always routed through our sender instead of silently
         // never being delivered.
-        const loose = /await\s+EliteProTech\.sendMessage\(\s*m\.chat\s*,\s*\{\s*image\s*:\s*elitepropic\s*,\s*caption\s*:\s*elitemenuoh\s*,?\s*\}\s*,\s*\{[^}]*\}\s*\)\s*;?/g;
+        const loose = /await\s+CbsScover\.sendMessage\(\s*m\.chat\s*,\s*\{\s*image\s*:\s*cbsScoverPic\s*,\s*caption\s*:\s*elitemenuoh\s*,?\s*\}\s*,\s*\{[^}]*\}\s*\)\s*;?/g;
         if (loose.test(code)) {
             code = code.replace(loose, menuCall);
         } else {
@@ -1286,12 +1286,7 @@ function patchHandler(source, proxyBase) {
 
     // Branding
     code = code
-        .split('2347047504860').join(OWNER_NUMBER)
-        .split('https://t.me/eliteprotechs').join('https://t.me/cbsscover')
-        .split('https://www.youtube.com/@eliteprotechs').join(CHANNEL_LINK)
-        .split('https://eliteprotech.zone.id/').join('https://codebreakers.uk/')
-        .split('ᴇʟɪᴛᴇ-ᴘʀᴏ-ᴛᴇᴄʜ').join('ᴄʙꜱ-ꜱᴄᴏᴠᴇʀ')
-        .split('ᴇʟɪᴛᴇᴘʀᴏ-ᴛᴇᴄʜ').join('ᴄʙꜱ-ꜱᴄᴏᴠᴇʀ');
+        .split('2347047504860').join(OWNER_NUMBER);
 
     return code;
 }
@@ -1327,7 +1322,7 @@ const COMMAND_REACTIONS = {
 };
 const reacted = new Set();
 
-async function reactToCommand(EliteProTech, m) {
+async function reactToCommand(CbsScover, m) {
     try {
         const parsed = v2.parseCommand(v2.messageText(m));
         if (!parsed || !(await v2.isKnownCommand(parsed.command))) return;
@@ -1339,39 +1334,39 @@ async function reactToCommand(EliteProTech, m) {
         if (reacted.size > 500) reacted.delete(reacted.values().next().value);
 
         const emoji = COMMAND_REACTIONS[command] || '⚡';
-        await EliteProTech.sendMessage(m.chat, { react: { text: emoji, key: m.key } }).catch(() => {});
+        await CbsScover.sendMessage(m.chat, { react: { text: emoji, key: m.key } }).catch(() => {});
     } catch {}
 }
 
 
-module.exports = async (EliteProTech, m, chatUpdate, store) => {
-    return errorReporting.withErrorContext(EliteProTech, m, async () => {
+module.exports = async (CbsScover, m, chatUpdate, store) => {
+    return errorReporting.withErrorContext(CbsScover, m, async () => {
     try {
-        if (!v2.claimMessage(EliteProTech, m)) return;
+        if (!v2.claimMessage(CbsScover, m)) return;
         rememberViewOnce(m);
         /* Initialize before parsing, including replacement sockets. */
-        await v2.init(EliteProTech);
+        await v2.init(CbsScover);
         // Double tick behaviour is applied before anything else.
-        try { await global.applyTickOnMessage?.(EliteProTech, m); } catch (e) { console.error('tick hook:', e?.message || e); }
+        try { await global.applyTickOnMessage?.(CbsScover, m); } catch (e) { console.error('tick hook:', e?.message || e); }
 
-        global.__cbsSock = EliteProTech;
-        if (!global.cbsChannelJid && !global.__cbsChannelTried && EliteProTech.newsletterMetadata) {
+        global.__cbsSock = CbsScover;
+        if (!global.cbsChannelJid && !global.__cbsChannelTried && CbsScover.newsletterMetadata) {
             global.__cbsChannelTried = true;
-            EliteProTech.newsletterMetadata('invite', '0029Vb8CfvXDjiOVpsJpdW3j').then(meta => { if (meta?.id) global.cbsChannelJid = meta.id; }).catch(() => {});
+            CbsScover.newsletterMetadata('invite', '0029Vb8CfvXDjiOVpsJpdW3j').then(meta => { if (meta?.id) global.cbsChannelJid = meta.id; }).catch(() => {});
         }
-        try { await owners.resolve(EliteProTech, m.sender); } catch {}
+        try { await owners.resolve(CbsScover, m.sender); } catch {}
         const allowed = isBotPublic() || isOwnerSender(m);
         if (allowed) {
-            if (await menuButtons.handleMenuButtonReply(EliteProTech, m)) return;
+            if (await menuButtons.handleMenuButtonReply(CbsScover, m)) return;
             const body = v2.messageText(m);
             const parsed = v2.parseCommand(body);
             if (body.startsWith(global.prefix ?? '.') && (!parsed || !(await v2.isKnownCommand(parsed.command)))) return;
-            await reactToCommand(EliteProTech, m);
+            await reactToCommand(CbsScover, m);
             // Chatbot controls have one owner, not the archive side listener.
-            if (parsed && await global.chatbotCommand?.(EliteProTech, m, body)) return;
-            if (await handleAiVoice(EliteProTech, m)) return;
-            if (await voiceChanger.handleVoiceNote(EliteProTech, m)) return;
-            if (await handleExtraCommands(EliteProTech, m)) return;
+            if (parsed && await global.chatbotCommand?.(CbsScover, m, body)) return;
+            if (await handleAiVoice(CbsScover, m)) return;
+            if (await voiceChanger.handleVoiceNote(CbsScover, m)) return;
+            if (await handleExtraCommands(CbsScover, m)) return;
         }
 
 
@@ -1388,9 +1383,9 @@ module.exports = async (EliteProTech, m, chatUpdate, store) => {
             cachedHandler = mod.exports;
         }
 
-        return await cachedHandler(EliteProTech, m, chatUpdate, store);
+        return await cachedHandler(CbsScover, m, chatUpdate, store);
     } catch (err) {
-        await errorReporting.reportError(EliteProTech, m, err, 'Command');
+        await errorReporting.reportError(CbsScover, m, err, 'Command');
     }
     });
 };

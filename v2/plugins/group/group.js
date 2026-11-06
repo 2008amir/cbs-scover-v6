@@ -1,7 +1,7 @@
-let handler = async (m, { EliteProTech, command }) => {
+let handler = async (m, { CbsScover, command }) => {
     const closed = command === 'close'
     try {
-        await EliteProTech.groupSettingUpdate(m.chat, closed ? 'announcement' : 'not_announcement')
+        await CbsScover.groupSettingUpdate(m.chat, closed ? 'announcement' : 'not_announcement')
         await m.reply(`Group is now *${closed ? 'closed' : 'open'}*.`)
     } catch (error) {
         await m.reply(`Unable to update group settings: ${error.message || String(error)}`)

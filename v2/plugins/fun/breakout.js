@@ -215,9 +215,9 @@ show('Brick Breaker','Clear every block. Catch the glowing drops to split into m
 loop();
 </script>`
 
-let handler = async (m, { EliteProTech }) => {
+let handler = async (m, { CbsScover }) => {
     try {
-        await sendRichHtml(EliteProTech, m.chat, { id: 'elite-breakout', title: 'ELITE-PRO-V2 • BREAKOUT', html, source: 'eliteprotech' })
+        await sendRichHtml(CbsScover, m.chat, { id: 'elite-breakout', title: 'CBS-SCOVER-V2 • BREAKOUT', html, source: 'CBS-SCOVER' })
     } catch (error) {
         await m.reply(`Unable to send Breakout: ${error.message || String(error)}`)
     }

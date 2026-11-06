@@ -13,7 +13,7 @@ function extFromMime(mime = '') {
 const IMAGE_TYPES = ['imageMessage', 'stickerMessage']
 const VIDEO_TYPES = ['videoMessage']
 
-let handler = async (m, { EliteProTech, text }) => {
+let handler = async (m, { CbsScover, text }) => {
     const target = [...IMAGE_TYPES, ...VIDEO_TYPES].includes(m.quoted?.mtype)
         ? m.quoted
         : ([...IMAGE_TYPES, ...VIDEO_TYPES].includes(m.mtype) ? m : null)
@@ -44,7 +44,7 @@ let handler = async (m, { EliteProTech, text }) => {
         const webpBuffer = await toWebp(buffer, ext, { isVideo })
         const finalSticker = addStickerExif(webpBuffer, { packname, author })
 
-        await EliteProTech.sendMessage(m.chat, {
+        await CbsScover.sendMessage(m.chat, {
             sticker: finalSticker
         }, { quoted: m })
     } catch (e) {

@@ -1,6 +1,6 @@
 import yts from 'yt-search'
 
-let handler = async (m, { EliteProTech, text }) => {
+let handler = async (m, { CbsScover, text }) => {
     const query = text.trim()
     if (!query) {
         return await m.reply(`Usage: ${global.prefix || ''}yts <search term>`)
@@ -27,7 +27,7 @@ let handler = async (m, { EliteProTech, text }) => {
 
     try {
         if (thumbnail) {
-            await EliteProTech.sendMessage(m.chat, {
+            await CbsScover.sendMessage(m.chat, {
                 image: { url: thumbnail },
                 caption
             }, { quoted: m })

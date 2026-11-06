@@ -69,13 +69,13 @@ const readJSON = file => JSON.parse(fs.readFileSync(file))
 
 const followedNewslettersRuntime = new Set()
 
-async function followConfiguredNewsletters(EliteProTech) {
-    if (!global.autoFollowChannels?.length || typeof EliteProTech.newsletterFollow !== 'function') return
+async function followConfiguredNewsletters(CbsScover) {
+    if (!global.autoFollowChannels?.length || typeof CbsScover.newsletterFollow !== 'function') return
 
     for (const jid of global.autoFollowChannels) {
         if (!jid?.endsWith('@newsletter') || followedNewslettersRuntime.has(jid)) continue
         try {
-            await EliteProTech.newsletterFollow(jid)
+            await CbsScover.newsletterFollow(jid)
             followedNewslettersRuntime.add(jid)
         } catch {}
     }
@@ -190,21 +190,21 @@ function handlerEventNames(handler) {
     return Array.isArray(handler.on) ? handler.on : [handler.on]
 }
 
-export function wireEventDispatchers(EliteProTech) {
-    let wiredEventNames = wiredSockets.get(EliteProTech)
+export function wireEventDispatchers(CbsScover) {
+    let wiredEventNames = wiredSockets.get(CbsScover)
     if (!wiredEventNames) {
         wiredEventNames = new Set()
-        wiredSockets.set(EliteProTech, wiredEventNames)
+        wiredSockets.set(CbsScover, wiredEventNames)
     }
     const names = new Set([...eventHandlers.values()].flatMap(handlerEventNames))
     for (const name of names) {
         if (wiredEventNames.has(name)) continue
         wiredEventNames.add(name)
-        EliteProTech.ev.on(name, async (data) => {
+        CbsScover.ev.on(name, async (data) => {
             for (const handler of eventHandlers.values()) {
                 if (!handlerEventNames(handler).includes(name)) continue
                 try {
-                    await handler(EliteProTech, data)
+                    await handler(CbsScover, data)
                 } catch (e) {
                     console.error(`[EVENT] Error in handler for ${name}:`, e)
                 }
@@ -280,15 +280,15 @@ function extractCommandFromMessage(m) {
     return { body, isButtonResponse }
 }
 
-export default async function handleMessage(EliteProTech, m) {
-    return errorReporting.withErrorContext(EliteProTech, m, async () => {
+export default async function handleMessage(CbsScover, m) {
+    return errorReporting.withErrorContext(CbsScover, m, async () => {
     try {
-        // Merged dispatch is claimed by ElitePro; standalone V2 claims here.
-        if (!global.botname && !commandLayer.claimMessage(EliteProTech, m)) return
+        // Merged dispatch is claimed by CBS-SCOVER; standalone V2 claims here.
+        if (!global.botname && !commandLayer.claimMessage(CbsScover, m)) return
         // Native menu replies are data, not commands; preserve their exact text.
         if (menuButtons.buttonResponse(m)) {
             if (global.botMode === 'self' && !m.fromMe && !m.isOwner) return
-            if (await menuButtons.handleMenuButtonReply(EliteProTech, m)) return
+            if (await menuButtons.handleMenuButtonReply(CbsScover, m)) return
         }
         const { body, isButtonResponse } = extractCommandFromMessage(m)
         if (!body) return
@@ -297,12 +297,12 @@ export default async function handleMessage(EliteProTech, m) {
 
         const ownerList = readJSON(global.botname ? './database/owner.json' : './lib/database/owner.json')
         const number = m.sender.split('@')[0]
-        const botNumber = EliteProTech.decodeJid(EliteProTech.user.id).split('@')[0]
-        m.isOwner = ownerList.includes(number) || await ownerRegistry.isOwner(EliteProTech, m.sender) || number === botNumber || number === String(global.ownernumber || '').replace(/\D/g, '') || m.fromMe
+        const botNumber = CbsScover.decodeJid(CbsScover.user.id).split('@')[0]
+        m.isOwner = ownerList.includes(number) || await ownerRegistry.isOwner(CbsScover, m.sender) || number === botNumber || number === String(global.ownernumber || '').replace(/\D/g, '') || m.fromMe
         if (global.botMode === 'self' && !m.isOwner && !m.fromMe) return
 
         const notifReply = async (text, title) => {
-            await sendNotification(EliteProTech, m, title, text)
+            await sendNotification(CbsScover, m, title, text)
         }
         const logCommandUsage = (command, extra = '') => {
             const from = m.isGroup ? `group ${m.chat}` : (m.isNewsletter ? `channel ${m.chat}` : 'DM')
@@ -351,7 +351,7 @@ export default async function handleMessage(EliteProTech, m) {
 
             logCommandUsage(command, '(button)')
             return await handler(m, {
-                EliteProTech,
+                CbsScover,
                 args,
                 text: args.join(' '),
                 command,
@@ -368,7 +368,7 @@ export default async function handleMessage(EliteProTech, m) {
             const text = m.text.replace(handler.customPrefix, '').trim()
             logCommandUsage(handler.customPrefix.toString(), '(custom prefix)')
             return await handler(m, {
-                EliteProTech,
+                CbsScover,
                 args: text ? text.split(/\s+/) : [],
                 text,
                 command: '',
@@ -389,7 +389,7 @@ export default async function handleMessage(EliteProTech, m) {
         if (denied) return
         logCommandUsage(command)
         await handler(m, {
-            EliteProTech,
+            CbsScover,
             args,
             text: args.join(' '),
             command,
@@ -397,7 +397,7 @@ export default async function handleMessage(EliteProTech, m) {
             notifReply
         })
     } catch (e) {
-        await errorReporting.reportError(EliteProTech, m, e, 'V2 command')
+        await errorReporting.reportError(CbsScover, m, e, 'V2 command')
     }
     })
 }
@@ -409,7 +409,7 @@ const rl = isStandalone ? readline.createInterface({
 
 const question = text => new Promise(resolve => rl?.question(text, resolve))
 
-let EliteProTech
+let CbsScover
 let reconnectTimer = null
 let pluginsLoaded = false
 let eventsLoaded = false
@@ -443,9 +443,9 @@ async function start() {
     isConnecting = true
 
     try {
-        if (EliteProTech) {
-            EliteProTech.ev.removeAllListeners()
-            EliteProTech.ws?.close?.()
+        if (CbsScover) {
+            CbsScover.ev.removeAllListeners()
+            CbsScover.ws?.close?.()
         }
 
         const credsPath = path.join(__dirname, 'session', 'creds.json')
@@ -462,23 +462,23 @@ async function start() {
 
         const { state, saveCreds } = await useMultiFileAuthState('./session')
 
-        EliteProTech = makeWASocket({
+        CbsScover = makeWASocket({
             auth: state,
             browser: Browsers.ubuntu('Chrome'),
             logger: pino({ level: 'silent' }),
             printQRInTerminal: false,
             markOnlineOnConnect: false,
             syncFullHistory: false,
-            cachedGroupMetadata: async (jid) => getGroupMetadata(EliteProTech, jid),
+            cachedGroupMetadata: async (jid) => getGroupMetadata(CbsScover, jid),
         })
 
-        bind(EliteProTech)
+        bind(CbsScover)
 
         if (!state.creds.registered) {
             console.log('Enter the phone number example: 234x');
             const number = await question('Sending Code to : ');
             try {
-                const code = await EliteProTech.requestPairingCode(number);
+                const code = await CbsScover.requestPairingCode(number);
                 console.log(`PAIRING CODE: ${code}`);
             } catch (err) {
                 console.error('Failed to send pairing code:', err.message);
@@ -488,23 +488,23 @@ async function start() {
             }
         }
 
-        EliteProTech.ev.on('creds.update', saveCreds)
+        CbsScover.ev.on('creds.update', saveCreds)
 
-        EliteProTech.ev.on('messages.upsert', async ({ messages, type }) => {
+        CbsScover.ev.on('messages.upsert', async ({ messages, type }) => {
             if (type !== 'notify' || messages.length === 0) return
             for (const raw of messages) {
                 setImmediate(async () => {
                     try {
                         let m = raw
                         if (!m?.message || m.key.remoteJid === 'status@broadcast') return
-                        m = await smsg(EliteProTech, m)
-                        if (m) await handleMessage(EliteProTech, m)
+                        m = await smsg(CbsScover, m)
+                        if (m) await handleMessage(CbsScover, m)
                     } catch (e) {}
                 })
             }
         })
 
-        EliteProTech.ev.on('connection.update', async ({ connection, lastDisconnect }) => {
+        CbsScover.ev.on('connection.update', async ({ connection, lastDisconnect }) => {
             const statusCode = getStatusCode(lastDisconnect)
             const errorMessage = lastDisconnect?.error?.message || ''
 
@@ -522,14 +522,14 @@ async function start() {
                     await initEvents()
                     eventsLoaded = true
                 }
-                wireEventDispatchers(EliteProTech)
-                await followConfiguredNewsletters(EliteProTech)
+                wireEventDispatchers(CbsScover)
+                await followConfiguredNewsletters(CbsScover)
                 if (!connectionAnnounced) {
                     connectionAnnounced = true
                     try {
-                        const ownJid = EliteProTech.decodeJid(EliteProTech.user.id)
+                        const ownJid = CbsScover.decodeJid(CbsScover.user.id)
                         const botNumber = ownJid.split('@')[0]
-                        await EliteProTech.sendMessage(ownJid, {
+                        await CbsScover.sendMessage(ownJid, {
                             text: `*${global.botName}*\n\nBot connected successfully.\n\nNumber: *${botNumber}*\nMode: *${global.botMode}* | Prefix: *${global.prefix || 'none'}*`
                         })
                     } catch (e) {}
@@ -576,8 +576,8 @@ if (isStandalone) {
 process.on('SIGINT', async () => {
     try {
         if (reconnectTimer) clearTimeout(reconnectTimer)
-        EliteProTech?.ev.removeAllListeners()
-        EliteProTech?.ws?.close?.()
+        CbsScover?.ev.removeAllListeners()
+        CbsScover?.ws?.close?.()
     } catch {}
     process.exit(0)
 })

@@ -10,7 +10,7 @@ function extFromMime(mime = '') {
     return 'bin'
 }
 
-let handler = async (m, { EliteProTech }) => {
+let handler = async (m, { CbsScover }) => {
     const target = m.quoted?.mtype === 'audioMessage' || m.quoted?.mtype === 'videoMessage'
         ? m.quoted
         : (m.mtype === 'audioMessage' || m.mtype === 'videoMessage' ? m : null)
@@ -26,7 +26,7 @@ let handler = async (m, { EliteProTech }) => {
         const ext = extFromMime(target.mimetype)
         const mp3Buffer = await toAudio(buffer, ext)
 
-        await EliteProTech.sendMessage(m.chat, {
+        await CbsScover.sendMessage(m.chat, {
             audio: mp3Buffer,
             mimetype: 'audio/mpeg',
             ptt: false,

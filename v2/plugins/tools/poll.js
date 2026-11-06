@@ -1,4 +1,4 @@
-let handler = async (m, { EliteProTech, text }) => {
+let handler = async (m, { CbsScover, text }) => {
     const values = text.split('|').map(value => value.trim()).filter(Boolean)
     const [name, ...options] = values
 
@@ -7,7 +7,7 @@ let handler = async (m, { EliteProTech, text }) => {
     }
 
     try {
-        await EliteProTech.sendMessage(m.chat, {
+        await CbsScover.sendMessage(m.chat, {
             poll: {
                 name,
                 values: options,

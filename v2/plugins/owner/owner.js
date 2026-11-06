@@ -1,7 +1,7 @@
-let handler = async (m, { EliteProTech }) => {
-    const jid = EliteProTech.decodeJid(EliteProTech.user.id)
+let handler = async (m, { CbsScover }) => {
+    const jid = CbsScover.decodeJid(CbsScover.user.id)
     const number = jid.split('@')[0]
-    const name = EliteProTech.user.name || global.ownerName || global.botName || 'Owner'
+    const name = CbsScover.user.name || global.ownerName || global.botName || 'Owner'
 
     const vcard = `BEGIN:VCARD\n`
         + `VERSION:3.0\n`
@@ -10,7 +10,7 @@ let handler = async (m, { EliteProTech }) => {
         + `TEL;type=CELL;type=VOICE;waid=${number}:+${number}\n`
         + `END:VCARD`
 
-    await EliteProTech.sendMessage(m.chat, {
+    await CbsScover.sendMessage(m.chat, {
         contacts: {
             displayName: name,
             contacts: [{ vcard }]

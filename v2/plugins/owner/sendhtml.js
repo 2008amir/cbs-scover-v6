@@ -27,14 +27,14 @@ async function readQuotedHtml(m) {
     return Buffer.from(file || []).toString('utf8').trim()
 }
 
-let handler = async (m, { EliteProTech }) => {
+let handler = async (m, { CbsScover }) => {
     try {
         const uploadedHtml = await readQuotedHtml(m)
         if (!uploadedHtml) {
             return await m.reply(`Reply to an HTML file or a text message containing HTML.\n\nUsage: ${global.prefix || ''}sendhtml`)
         }
 
-        await sendRichHtml(EliteProTech, m.chat, { id: 'cbs-scover-html', title: 'CBS-SCOVER', html: buildCard(uploadedHtml), source: 'cbsscover' })
+        await sendRichHtml(CbsScover, m.chat, { id: 'cbs-scover-html', title: 'CBS-SCOVER', html: buildCard(uploadedHtml), source: 'cbsscover' })
     } catch (error) {
         await m.reply(`Unable to send HTML card: ${error.message || String(error)}`)
     }

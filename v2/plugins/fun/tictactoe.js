@@ -141,9 +141,9 @@ function loop(){
 loop();
 </script>`
 
-let handler = async (m, { EliteProTech }) => {
+let handler = async (m, { CbsScover }) => {
     try {
-        await sendRichHtml(EliteProTech, m.chat, { id: 'elite-tictactoe', title: 'ELITE-PRO-V2 • TIC TAC TOE', html, source: 'eliteprotech' })
+        await sendRichHtml(CbsScover, m.chat, { id: 'elite-tictactoe', title: 'CBS-SCOVER-V2 • TIC TAC TOE', html, source: 'CBS-SCOVER' })
     } catch (error) {
         await m.reply(`Unable to send Tic Tac Toe: ${error.message || String(error)}`)
     }

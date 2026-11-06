@@ -1,4 +1,4 @@
-let handler = async (EliteProTech, { messages, type }) => {
+let handler = async (CbsScover, { messages, type }) => {
     if (global.botname || type !== 'notify') return
 
     for (const raw of messages || []) {
@@ -6,12 +6,12 @@ let handler = async (EliteProTech, { messages, type }) => {
         if (!chat || raw.key?.fromMe || chat === 'status@broadcast' || chat.endsWith('@newsletter')) continue
 
         if (global.autoRecordType) {
-            await EliteProTech.sendPresenceUpdate('recording', chat).catch(() => {})
-            setTimeout(() => EliteProTech.sendPresenceUpdate('composing', chat).catch(() => {}), 700)
+            await CbsScover.sendPresenceUpdate('recording', chat).catch(() => {})
+            setTimeout(() => CbsScover.sendPresenceUpdate('composing', chat).catch(() => {}), 700)
         } else if (global.autoRecording) {
-            await EliteProTech.sendPresenceUpdate('recording', chat).catch(() => {})
+            await CbsScover.sendPresenceUpdate('recording', chat).catch(() => {})
         } else if (global.autoTyping) {
-            await EliteProTech.sendPresenceUpdate('composing', chat).catch(() => {})
+            await CbsScover.sendPresenceUpdate('composing', chat).catch(() => {})
         }
     }
 }

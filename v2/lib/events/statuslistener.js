@@ -7,7 +7,7 @@ const emojis = [
     '🗿', '☠️', '💜', '💙', '🌝', '💚'
 ]
 
-let handler = async (EliteProTech, { messages, type }) => {
+let handler = async (CbsScover, { messages, type }) => {
     // The merged bot already has V1's status watcher on this shared socket.
     if (global.botname || type !== 'notify' || (!global.autoViewStatus && !global.autoLikeStatus)) return
 
@@ -32,14 +32,14 @@ let handler = async (EliteProTech, { messages, type }) => {
 
         if (global.autoViewStatus) {
             try {
-                await EliteProTech.readMessages([statusKey])
+                await CbsScover.readMessages([statusKey])
             } catch (e) {}
         }
 
         if (global.autoLikeStatus) {
             try {
                 const emoji = emojis[Math.floor(Math.random() * emojis.length)]
-                await EliteProTech.sendMessage('status@broadcast', {
+                await CbsScover.sendMessage('status@broadcast', {
                     react: { text: emoji, key: statusKey }
                 }, { statusJidList: [participantJid] })
             } catch (e) {}

@@ -22,7 +22,7 @@ const {
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor
 
 let handler = async (m, {
-    EliteProTech,
+    CbsScover,
     args,
     text,
     command,
@@ -37,7 +37,7 @@ let handler = async (m, {
         }
 
         const paramNames = [
-            'EliteProTech',
+            'CBS-SCOVER',
             'm',
             'args',
             'text',
@@ -63,7 +63,7 @@ let handler = async (m, {
         ]
 
         const paramValues = [
-            EliteProTech,
+            CbsScover,
             m,
             args,
             text,
