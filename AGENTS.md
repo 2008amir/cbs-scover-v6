@@ -23,4 +23,4 @@
 - lib/document-conversion.js locally extracts bounded PDF text with PDF.js and writes DOCX; no LibreOffice/external uploads. Image-only pages explicitly require OCR rather than producing blank documents.
 
 - lib/media-limits.js shares size caps and one download/status lease. Convert direct video from files; copy H264 to reduce host pressure.
-- lib/owners.js owns the owner registry: read fresh per check, mirror both owner.json files and learn owner LIDs, so added owners act instantly without restart.
+- lib/owners.js owns owners: fresh reads, mirrored files, learned LIDs; no restart needed.
