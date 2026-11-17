@@ -252,9 +252,10 @@ export async function smsg(CbsScover, m) {
             const participants = groupMetadata?.participants || [];
             const matchParticipant = (...candidates) => {
                 const ids = new Set(candidates.filter(Boolean).flatMap(id => [id, CbsScover.decodeJid(id)]));
+                const nums = new Set(candidates.filter(Boolean).map(id => String(id).split('@')[0].split(':')[0]));
                 return participants.find(p => [p.id, p.lid, p.phoneNumber]
                     .filter(Boolean)
-                    .some(id => ids.has(id) || ids.has(CbsScover.decodeJid(id))));
+                    .some(id => ids.has(id) || ids.has(CbsScover.decodeJid(id)) || nums.has(String(id).split('@')[0].split(':')[0])));
             };
 
             const senderParticipant = matchParticipant(m.sender, m.key.participant, m.key.participantAlt);
